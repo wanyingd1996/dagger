@@ -22,6 +22,7 @@ import static dagger.internal.codegen.base.RequestKinds.getRequestKind;
 import static dagger.internal.codegen.base.Util.reentrantComputeIfAbsent;
 import static dagger.internal.codegen.binding.AssistedInjectionAnnotations.isAssistedFactoryType;
 import static dagger.internal.codegen.binding.SourceFiles.generatedMonitoringModuleName;
+import static dagger.internal.codegen.extension.DaggerStreams.toImmutableSet;
 import static dagger.internal.codegen.model.BindingKind.ASSISTED_INJECTION;
 import static dagger.internal.codegen.model.BindingKind.DELEGATE;
 import static dagger.internal.codegen.model.BindingKind.INJECTION;
@@ -47,7 +48,6 @@ import dagger.internal.codegen.base.ClearableCache;
 import dagger.internal.codegen.base.ContributionType;
 import dagger.internal.codegen.base.DaggerSuperficialValidation;
 import dagger.internal.codegen.base.Keys;
-import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.base.OptionalType;
 import dagger.internal.codegen.compileroption.CompilerOptions;
 import dagger.internal.codegen.javapoet.TypeNames;
@@ -521,12 +521,17 @@ public final class BindingGraphFactory implements ClearableCache {
     }
 
     private ImmutableSet<ContributionBinding> createDelegateBindings(
-        ImmutableSet<DelegateDeclaration> delegateDeclarations) {
-      ImmutableSet.Builder<ContributionBinding> builder = ImmutableSet.builder();
-      for (DelegateDeclaration delegateDeclaration : delegateDeclarations) {
-        builder.add(createDelegateBinding(delegateDeclaration));
-      }
-      return builder.build();
+        ImmutableSetMultimap<Key, DelegateDeclaration> delegateDeclarations, Key requestKey) {
+      return delegateDeclarations.get(
+              // @Binds @IntoMap declarations have key Map<K, V>, unlike @Provides @IntoMap or
+              // @Produces @IntoMap, which have Map<K, Provider/Producer<V>> keys. So unwrap the
+              // key's type's value type if it's a Map<K, Provider/Producer<V>> before looking
+              // in delegateDeclarations. createDelegateBindings() will create bindings with the
+              // properly wrapped key type.
+              keyFactory.unwrapMapValueType(requestKey))
+          .stream()
+          .map(this::createDelegateBinding)
+          .collect(toImmutableSet());
     }
 
     /**
@@ -699,15 +704,9 @@ public final class BindingGraphFactory implements ClearableCache {
      * resolver.
      */
     private ImmutableSet<ContributionBinding> getLocalExplicitBindings(Key key) {
-      return new ImmutableSet.Builder<ContributionBinding>()
+      return ImmutableSet.<ContributionBinding>builder()
           .addAll(explicitBindings.get(key))
-          // @Binds @IntoMap declarations have key Map<K, V>, unlike @Provides @IntoMap or @Produces
-          // @IntoMap, which have Map<K, Provider/Producer<V>> keys. So unwrap the key's type's
-          // value type if it's a Map<K, Provider/Producer<V>> before looking in
-          // delegateDeclarations. createDelegateBindings() will create bindings with the properly
-          // wrapped key type.
-          .addAll(
-              createDelegateBindings(delegateDeclarations.get(keyFactory.unwrapMapValueType(key))))
+          .addAll(createDelegateBindings(delegateDeclarations, key))
           .build();
     }
 
@@ -716,21 +715,10 @@ public final class BindingGraphFactory implements ClearableCache {
      * by {@code key} from this resolver.
      */
     private ImmutableSet<ContributionBinding> getLocalExplicitMultibindings(Key key) {
-      ImmutableSet.Builder<ContributionBinding> multibindings = ImmutableSet.builder();
-      multibindings.addAll(explicitMultibindings.get(key));
-      if (!MapType.isMap(key)
-          || MapType.from(key).isRawType()
-          || MapType.from(key).valuesAreFrameworkType()) {
-        // @Binds @IntoMap declarations have key Map<K, V>, unlike @Provides @IntoMap or @Produces
-        // @IntoMap, which have Map<K, Provider/Producer<V>> keys. So unwrap the key's type's
-        // value type if it's a Map<K, Provider/Producer<V>> before looking in
-        // delegateMultibindingDeclarations. createDelegateBindings() will create bindings with the
-        // properly wrapped key type.
-        multibindings.addAll(
-            createDelegateBindings(
-                delegateMultibindingDeclarations.get(keyFactory.unwrapMapValueType(key))));
-      }
-      return multibindings.build();
+      return ImmutableSet.<ContributionBinding>builder()
+          .addAll(explicitMultibindings.get(key))
+          .addAll(createDelegateBindings(delegateMultibindingDeclarations, key))
+          .build();
     }
 
     /**
