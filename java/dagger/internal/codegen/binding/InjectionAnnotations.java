@@ -100,18 +100,7 @@ public final class InjectionAnnotations {
   public ImmutableSet<Scope> getScopes(XElement element) {
     superficialValidation.validateTypeOf(element);
     ImmutableSet<Scope> scopes =
-        getScopesFromScopeMetadata(element)
-            .orElseGet(
-                () -> {
-                  // Validate the annotation types before we check for @Scope, otherwise the @Scope
-                  // annotation may appear to be missing (b/213880825).
-                  superficialValidation.validateAnnotationTypesOf(element);
-                  return element.getAllAnnotations().stream()
-                      .filter(InjectionAnnotations::hasScopeAnnotation)
-                      .map(DaggerAnnotation::from)
-                      .map(Scope::scope)
-                      .collect(toImmutableSet());
-                });
+        getScopesWithMetadata(element).orElseGet(() -> getScopesWithoutMetadata(element));
 
     // Fully validate each scope to ensure its values are also valid.
     scopes.stream()
@@ -120,7 +109,18 @@ public final class InjectionAnnotations {
     return scopes;
   }
 
-  private Optional<ImmutableSet<Scope>> getScopesFromScopeMetadata(XElement element) {
+  private ImmutableSet<Scope> getScopesWithoutMetadata(XElement element) {
+    // Validate the annotation types before we check for @Scope, otherwise the @Scope
+    // annotation may appear to be missing (b/213880825).
+    superficialValidation.validateAnnotationTypesOf(element);
+    return element.getAllAnnotations().stream()
+        .filter(InjectionAnnotations::hasScopeAnnotation)
+        .map(DaggerAnnotation::from)
+        .map(Scope::scope)
+        .collect(toImmutableSet());
+  }
+
+  private Optional<ImmutableSet<Scope>> getScopesWithMetadata(XElement element) {
     Optional<XAnnotation> scopeMetadata = getScopeMetadata(element);
     if (!scopeMetadata.isPresent()) {
       return Optional.empty();
@@ -203,16 +203,8 @@ public final class InjectionAnnotations {
   public ImmutableSet<XAnnotation> getQualifiers(XElement element) {
     superficialValidation.validateTypeOf(element);
     ImmutableSet<XAnnotation> qualifiers =
-        getQualifiersFromQualifierMetadata(element)
-            .orElseGet(
-                () -> {
-                  // Validate the annotation types before we check for @Qualifier, otherwise the
-                  // @Qualifier annotation may appear to be missing (b/213880825).
-                  superficialValidation.validateAnnotationTypesOf(element);
-                  return element.getAllAnnotations().stream()
-                      .filter(InjectionAnnotations::hasQualifierAnnotation)
-                      .collect(toImmutableSet());
-                });
+        getQualifiersWithMetadata(element)
+            .orElseGet(() -> getQualifiersWithoutMetadata(element));
 
     if (isField(element)) {
       XFieldElement field = asField(element);
@@ -237,7 +229,16 @@ public final class InjectionAnnotations {
     return qualifiers;
   }
 
-  private Optional<ImmutableSet<XAnnotation>> getQualifiersFromQualifierMetadata(XElement element) {
+  private ImmutableSet<XAnnotation> getQualifiersWithoutMetadata(XElement element) {
+    // Validate the annotation types before we check for @Qualifier, otherwise the
+    // @Qualifier annotation may appear to be missing (b/213880825).
+    superficialValidation.validateAnnotationTypesOf(element);
+    return element.getAllAnnotations().stream()
+        .filter(InjectionAnnotations::hasQualifierAnnotation)
+        .collect(toImmutableSet());
+  }
+
+  private Optional<ImmutableSet<XAnnotation>> getQualifiersWithMetadata(XElement element) {
     Optional<XAnnotation> qualifierMetadata = getQualifierMetadata(element);
     if (!qualifierMetadata.isPresent()) {
       return Optional.empty();
