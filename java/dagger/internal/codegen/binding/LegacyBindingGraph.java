@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
+import dagger.internal.codegen.model.BindingGraph.ComponentNode;
+import dagger.internal.codegen.model.ComponentPath;
 import dagger.internal.codegen.model.Key;
 import dagger.internal.codegen.model.RequestKind;
 import java.util.Collection;
@@ -30,20 +32,31 @@ import java.util.Map;
 // TODO(bcorso): Remove the LegacyBindingGraph after we've migrated to the new BindingGraph.
 /** The canonical representation of a full-resolved graph. */
 final class LegacyBindingGraph {
+  private final ComponentNode componentNode;
   private final ComponentDescriptor componentDescriptor;
   private final ImmutableMap<Key, ResolvedBindings> contributionBindings;
   private final ImmutableMap<Key, ResolvedBindings> membersInjectionBindings;
   private final ImmutableList<LegacyBindingGraph> subgraphs;
 
   LegacyBindingGraph(
+      ComponentPath componentPath,
       ComponentDescriptor componentDescriptor,
       ImmutableMap<Key, ResolvedBindings> contributionBindings,
       ImmutableMap<Key, ResolvedBindings> membersInjectionBindings,
       ImmutableList<LegacyBindingGraph> subgraphs) {
+    this.componentNode = ComponentNodeImpl.create(componentPath, componentDescriptor);
     this.componentDescriptor = componentDescriptor;
     this.contributionBindings = contributionBindings;
     this.membersInjectionBindings = membersInjectionBindings;
     this.subgraphs = checkForDuplicates(subgraphs);
+  }
+
+  ComponentNode componentNode() {
+    return componentNode;
+  }
+
+  ComponentPath componentPath() {
+    return componentNode.componentPath();
   }
 
   ComponentDescriptor componentDescriptor() {

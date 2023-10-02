@@ -51,6 +51,8 @@ import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.base.OptionalType;
 import dagger.internal.codegen.compileroption.CompilerOptions;
 import dagger.internal.codegen.javapoet.TypeNames;
+import dagger.internal.codegen.model.ComponentPath;
+import dagger.internal.codegen.model.DaggerTypeElement;
 import dagger.internal.codegen.model.DependencyRequest;
 import dagger.internal.codegen.model.Key;
 import dagger.internal.codegen.model.Scope;
@@ -190,8 +192,14 @@ public final class BindingGraphFactory implements ClearableCache {
       optionalsBuilder.addAll(moduleDescriptor.optionalDeclarations());
     }
 
+    DaggerTypeElement component = DaggerTypeElement.from(componentDescriptor.typeElement());
+    ComponentPath componentPath =
+        parentResolver.isPresent()
+            ? parentResolver.get().componentPath.childPath(component)
+            : ComponentPath.create(ImmutableList.of(component));
     final Resolver requestResolver =
         new Resolver(
+            componentPath,
             parentResolver,
             componentDescriptor,
             indexBindingDeclarationsByKey(explicitBindingsBuilder.build()),
@@ -237,6 +245,7 @@ public final class BindingGraphFactory implements ClearableCache {
     }
 
     return new LegacyBindingGraph(
+        componentPath,
         componentDescriptor,
         ImmutableMap.copyOf(requestResolver.getResolvedContributionBindings()),
         ImmutableMap.copyOf(requestResolver.getResolvedMembersInjectionBindings()),
@@ -300,6 +309,7 @@ public final class BindingGraphFactory implements ClearableCache {
   }
 
   private final class Resolver {
+    final ComponentPath componentPath;
     final Optional<Resolver> parentResolver;
     final ComponentDescriptor componentDescriptor;
     final ImmutableSetMultimap<Key, ContributionBinding> explicitBindings;
@@ -318,6 +328,7 @@ public final class BindingGraphFactory implements ClearableCache {
     final Queue<ComponentDescriptor> subcomponentsToResolve = new ArrayDeque<>();
 
     Resolver(
+        ComponentPath componentPath,
         Optional<Resolver> parentResolver,
         ComponentDescriptor componentDescriptor,
         ImmutableSetMultimap<Key, ContributionBinding> explicitBindings,
@@ -325,6 +336,7 @@ public final class BindingGraphFactory implements ClearableCache {
         ImmutableSetMultimap<Key, SubcomponentDeclaration> subcomponentDeclarations,
         ImmutableSetMultimap<Key, DelegateDeclaration> delegateDeclarations,
         ImmutableSetMultimap<Key, OptionalBindingDeclaration> optionalBindingDeclarations) {
+      this.componentPath = componentPath;
       this.parentResolver = parentResolver;
       this.componentDescriptor = checkNotNull(componentDescriptor);
       this.explicitBindings = checkNotNull(explicitBindings);
@@ -428,6 +440,7 @@ public final class BindingGraphFactory implements ClearableCache {
       }
 
       return ResolvedBindings.forContributionBindings(
+          componentPath,
           requestKey,
           Multimaps.index(bindings, binding -> getOwningComponent(requestKey, binding)),
           multibindingDeclarations,
@@ -466,8 +479,8 @@ public final class BindingGraphFactory implements ClearableCache {
           injectBindingRegistry.getOrFindMembersInjectionBinding(requestKey);
       return binding.isPresent()
           ? ResolvedBindings.forMembersInjectionBinding(
-              requestKey, componentDescriptor, binding.get())
-          : ResolvedBindings.noBindings(requestKey);
+              componentPath, requestKey, componentDescriptor, binding.get())
+          : ResolvedBindings.noBindings(componentPath, requestKey);
     }
 
     /**
