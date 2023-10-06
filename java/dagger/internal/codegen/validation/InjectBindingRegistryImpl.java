@@ -118,10 +118,7 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     }
 
     /** Caches the binding and generates it if it needs generation. */
-    void tryRegisterBinding(
-        B binding,
-        boolean warnIfNotAlreadyGenerated,
-        boolean isCalledFromInjectProcessor) {
+    void tryRegisterBinding(B binding, boolean isCalledFromInjectProcessor) {
       if (processingEnv.getBackend() == XProcessingEnv.Backend.KSP) {
         Origin origin =
             toKS(closestEnclosingTypeElement(binding.bindingElement().get())).getOrigin();
@@ -143,21 +140,18 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
       @SuppressWarnings("unchecked")
       B maybeUnresolved =
           binding.unresolved().isPresent() ? (B) binding.unresolved().get() : binding;
-      tryToGenerateBinding(maybeUnresolved, warnIfNotAlreadyGenerated, isCalledFromInjectProcessor);
+      tryToGenerateBinding(maybeUnresolved, isCalledFromInjectProcessor);
     }
 
     /**
      * Tries to generate a binding, not generating if it already is generated. For resolved
      * bindings, this will try to generate the unresolved version of the binding.
      */
-    void tryToGenerateBinding(
-        B binding,
-        boolean warnIfNotAlreadyGenerated,
-        boolean isCalledFromInjectProcessor) {
+    void tryToGenerateBinding(B binding, boolean isCalledFromInjectProcessor) {
       if (shouldGenerateBinding(binding)) {
         bindingsRequiringGeneration.offer(binding);
         if (compilerOptions.warnIfInjectionFactoryNotGeneratedUpstream()
-            && warnIfNotAlreadyGenerated) {
+                && !isCalledFromInjectProcessor) {
           messager.printMessage(
               Kind.NOTE,
               String.format(
@@ -172,6 +166,22 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
 
     /** Returns true if the binding needs to be generated. */
     private boolean shouldGenerateBinding(B binding) {
+      if (binding instanceof MembersInjectionBinding) {
+        MembersInjectionBinding membersInjectionBinding = (MembersInjectionBinding) binding;
+        // Empty members injection bindings are special and don't need source files.
+        if (membersInjectionBinding.injectionSites().isEmpty()) {
+          return false;
+        }
+        // Members injectors for classes with no local injection sites and no @Inject
+        // constructor are unused.
+        boolean hasInjectConstructor =
+            !(injectedConstructors(membersInjectionBinding.membersInjectedType()).isEmpty()
+                && assistedInjectedConstructors(
+                    membersInjectionBinding.membersInjectedType()).isEmpty());
+        if (!membersInjectionBinding.hasLocalInjectionSites() && !hasInjectConstructor) {
+          return false;
+        }
+      }
       return !binding.unresolved().isPresent()
           && !materializedBindingKeys.contains(binding.key())
           && !bindingsRequiringGeneration.contains(binding)
@@ -225,56 +235,12 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     membersInjectionBindings.generateBindings(membersInjectorGenerator);
   }
 
-  /**
-   * Registers the binding for generation and later lookup. If the binding is resolved, we also
-   * attempt to register an unresolved version of it.
-   */
-  private void registerBinding(
-      ProvisionBinding binding,
-      boolean warnIfNotAlreadyGenerated,
-      boolean isCalledFromInjectProcessor) {
-    provisionBindings.tryRegisterBinding(
-        binding, warnIfNotAlreadyGenerated, isCalledFromInjectProcessor);
-  }
-
-  /**
-   * Registers the binding for generation and later lookup. If the binding is resolved, we also
-   * attempt to register an unresolved version of it.
-   */
-  private void registerBinding(
-      MembersInjectionBinding binding,
-      boolean warnIfNotAlreadyGenerated,
-      boolean isCalledFromInjectProcessor) {
-    /*
-     * We generate MembersInjector classes for types with @Inject constructors only if they have any
-     * injection sites.
-     *
-     * We generate MembersInjector classes for types without @Inject constructors only if they have
-     * local (non-inherited) injection sites.
-     *
-     * Warn only when registering bindings post-hoc for those types.
-     */
-    if (warnIfNotAlreadyGenerated) {
-      boolean hasInjectConstructor =
-          !(injectedConstructors(binding.membersInjectedType()).isEmpty()
-              && assistedInjectedConstructors(binding.membersInjectedType()).isEmpty());
-      warnIfNotAlreadyGenerated =
-          hasInjectConstructor
-              ? !binding.injectionSites().isEmpty()
-              : binding.hasLocalInjectionSites();
-    }
-
-    membersInjectionBindings
-        .tryRegisterBinding(binding, warnIfNotAlreadyGenerated, isCalledFromInjectProcessor);
-  }
-
   @Override
   public Optional<ProvisionBinding> tryRegisterInjectConstructor(
       XConstructorElement constructorElement) {
     return tryRegisterConstructor(
         constructorElement,
         Optional.empty(),
-        /* warnIfNotAlreadyGenerated= */ false,
         /* isCalledFromInjectProcessor= */ true);
   }
 
@@ -282,7 +248,6 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
   private Optional<ProvisionBinding> tryRegisterConstructor(
       XConstructorElement constructorElement,
       Optional<XType> resolvedType,
-      boolean warnIfNotAlreadyGenerated,
       boolean isCalledFromInjectProcessor) {
     XTypeElement typeElement = constructorElement.getEnclosingElement();
 
@@ -301,10 +266,9 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     }
 
     ProvisionBinding binding = bindingFactory.injectionBinding(constructorElement, resolvedType);
-    registerBinding(binding, warnIfNotAlreadyGenerated, isCalledFromInjectProcessor);
+    provisionBindings.tryRegisterBinding(binding, isCalledFromInjectProcessor);
     if (!binding.injectionSites().isEmpty()) {
-      tryRegisterMembersInjectedType(
-          typeElement, resolvedType, warnIfNotAlreadyGenerated, isCalledFromInjectProcessor);
+      tryRegisterMembersInjectedType(typeElement, resolvedType, isCalledFromInjectProcessor);
     }
     return Optional.of(binding);
   }
@@ -322,7 +286,6 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     return tryRegisterMembersInjectedType(
         asTypeElement(fieldElement.getEnclosingElement()),
         Optional.empty(),
-        /* warnIfNotAlreadyGenerated= */ false,
         /* isCalledFromInjectProcessor= */ true);
   }
 
@@ -339,7 +302,6 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     return tryRegisterMembersInjectedType(
         asTypeElement(methodElement.getEnclosingElement()),
         Optional.empty(),
-        /* warnIfNotAlreadyGenerated= */ false,
         /* isCalledFromInjectProcessor= */ true);
   }
 
@@ -347,7 +309,6 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
   private Optional<MembersInjectionBinding> tryRegisterMembersInjectedType(
       XTypeElement typeElement,
       Optional<XType> resolvedType,
-      boolean warnIfNotAlreadyGenerated,
       boolean isCalledFromInjectProcessor) {
     // Validating here shouldn't have a performance penalty because the validator caches its reports
     ValidationReport report = injectValidator.validateForMembersInjection(typeElement);
@@ -364,7 +325,7 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     }
 
     MembersInjectionBinding binding = bindingFactory.membersInjectionBinding(type, resolvedType);
-    registerBinding(binding, warnIfNotAlreadyGenerated, isCalledFromInjectProcessor);
+    membersInjectionBindings.tryRegisterBinding(binding, isCalledFromInjectProcessor);
     for (Optional<XType> supertype = nonObjectSuperclass(type);
         supertype.isPresent();
         supertype = nonObjectSuperclass(supertype.get())) {
@@ -404,7 +365,6 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
                 tryRegisterConstructor(
                     constructor,
                     Optional.of(type),
-                    /* warnIfNotAlreadyGenerated= */ true,
                     /* isCalledFromInjectProcessor= */ false));
   }
 
@@ -421,7 +381,6 @@ final class InjectBindingRegistryImpl implements InjectBindingRegistry {
     return tryRegisterMembersInjectedType(
         key.type().xprocessing().getTypeElement(),
         Optional.of(key.type().xprocessing()),
-        /* warnIfNotAlreadyGenerated= */ true,
         /* isCalledFromInjectProcessor= */ false);
   }
 

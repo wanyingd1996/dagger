@@ -16,7 +16,13 @@
 
 package dagger.internal.codegen;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
+import static org.junit.Assert.assertThrows;
+
+import androidx.room.compiler.processing.util.CompilationResultSubject;
 import androidx.room.compiler.processing.util.Source;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -27,6 +33,7 @@ import dagger.testing.compile.CompilerTests;
 import dagger.testing.golden.GoldenFileRule;
 import java.util.Collection;
 import javax.inject.Inject;
+import javax.tools.Diagnostic;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1380,19 +1387,58 @@ public class ComponentProcessorTest {
             subject -> {
               subject.hasErrorCount(0);
               subject.hasWarningCount(0);
-              subject.hasNoteContaining(
-                  String.format(
-                      "Generating a MembersInjector for dagger.internal.codegen.%s.",
-                      "ComponentProcessorTestClasses.LocalInjectMemberNoConstructor"));
-              subject.hasNoteContaining(
-                  String.format(
-                      "Generating a MembersInjector for dagger.internal.codegen.%s.",
-                      "ComponentProcessorTestClasses.LocalInjectMemberWithConstructor"));
-              subject.hasNoteContaining(
-                  String.format(
-                      "Generating a MembersInjector for dagger.internal.codegen.%s.",
-                      "ComponentProcessorTestClasses.ParentInjectMemberWithConstructor"));
+
+              String generatedFileTemplate =
+                  "dagger/internal/codegen/ComponentProcessorTestClasses_%s_MembersInjector.java";
+              String noteTemplate =
+                  "Generating a MembersInjector for "
+                      + "dagger.internal.codegen.ComponentProcessorTestClasses.%s.";
+
+              // Assert that we generate sources and notes for the following classes.
+              ImmutableList.of(
+                      "LocalInjectMemberNoConstructor",
+                      "LocalInjectMemberWithConstructor",
+                      "ParentInjectMemberWithConstructor")
+                  .forEach(
+                      className -> {
+                        subject.generatedSourceFileWithPath(
+                            String.format(generatedFileTemplate, className));
+                        subject.hasNoteContaining(String.format(noteTemplate, className));
+                      });
+
+              // Assert that we **do not** generate sources and notes for the following classes.
+              ImmutableList.of(
+                      "ParentInjectMemberNoConstructor",
+                      "NoInjectMemberNoConstructor",
+                      "NoInjectMemberWithConstructor")
+                  .forEach(
+                      className -> {
+                        assertFileNotGenerated(
+                            subject, String.format(generatedFileTemplate, className));
+                        assertDoesNotHaveNoteContaining(
+                            subject, String.format(noteTemplate, className));
+                      });
             });
+  }
+
+  private void assertFileNotGenerated(CompilationResultSubject subject, String filePath) {
+    // TODO(b/303653163): replace this with better XProcessing API once we have the ability to get a
+    // list of all generated sources.
+    AssertionError error =
+        assertThrows(
+            AssertionError.class,
+            () -> subject.generatedSourceFileWithPath(filePath));
+    assertThat(error).hasMessageThat().contains("Didn't generate file");
+  }
+
+  private void assertDoesNotHaveNoteContaining(CompilationResultSubject subject, String content) {
+    assertThat(
+        subject
+            .getCompilationResult()
+            .getDiagnostics()
+            .get(Diagnostic.Kind.NOTE)
+            .stream()
+            .filter(diagnostic -> diagnostic.getMsg().contains(content))).isEmpty();
   }
 
   @Test
