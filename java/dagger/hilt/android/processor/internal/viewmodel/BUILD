@@ -38,6 +38,7 @@ kt_jvm_library(
         "//java/dagger/hilt/android/processor/internal:android_classnames",
         "//java/dagger/hilt/processor/internal:base_processor",
         "//java/dagger/hilt/processor/internal:classnames",
+        "//java/dagger/hilt/processor/internal:compiler_options",
         "//java/dagger/hilt/processor/internal:processor_errors",
         "//java/dagger/hilt/processor/internal:processors",
         "//java/dagger/internal/codegen/xprocessing",

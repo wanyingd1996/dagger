@@ -114,6 +114,10 @@ public final class AndroidClassNames {
       get("dagger.hilt.android.lifecycle", "HiltViewModel");
   public static final ClassName HILT_VIEW_MODEL_MAP_QUALIFIER =
       get("dagger.hilt.android.internal.lifecycle", "HiltViewModelMap");
+
+  public static final ClassName HILT_VIEW_MODEL_ASSISTED_FACTORY_MAP_QUALIFIER =
+      get("dagger.hilt.android.internal.lifecycle", "HiltViewModelAssistedMap");
+
   public static final ClassName HILT_VIEW_MODEL_KEYS_QUALIFIER =
       get("dagger.hilt.android.internal.lifecycle", "HiltViewModelMap", "KeySet");
   public static final ClassName VIEW_MODEL = get("androidx.lifecycle", "ViewModel");

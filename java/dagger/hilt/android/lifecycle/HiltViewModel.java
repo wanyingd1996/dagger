@@ -65,4 +65,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS)
 @GeneratesRootInput
-public @interface HiltViewModel {}
+public @interface HiltViewModel {
+  /**
+   * Returns a factory class that can be used to create this ViewModel with assisted injection. The
+   * default value `Object.class` denotes that no factory is specified and the ViewModel is not
+   * assisted injected.
+   */
+  Class<?> assistedFactory() default Object.class;
+}

@@ -16,12 +16,12 @@
 
 package dagger.hilt.android.internal.lifecycle;
 
+import static androidx.lifecycle.SavedStateHandleSupport.createSavedStateHandle;
+
 import android.app.Activity;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.AbstractSavedStateViewModelFactory;
-import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.viewmodel.CreationExtras;
@@ -37,6 +37,7 @@ import dagger.multibindings.Multibinds;
 import java.util.Map;
 import java.util.Set;
 import javax.inject.Provider;
+import kotlin.jvm.functions.Function1;
 
 /**
  * View Model Provider Factory for the Hilt Extension.
@@ -55,7 +56,15 @@ public final class HiltViewModelFactory implements ViewModelProvider.Factory {
   public interface ViewModelFactoriesEntryPoint {
     @HiltViewModelMap
     Map<String, Provider<ViewModel>> getHiltViewModelMap();
+
+    // From ViewModel class names to user defined @AssistedFactory-annotated implementations.
+    @HiltViewModelAssistedMap
+    Map<String, Object> getHiltViewModelAssistedMap();
   }
+
+  /** Creation extra key for the callbacks that create @AssistedInject-annotated ViewModels. */
+  public static final CreationExtras.Key<Function1<Object, ViewModel>> CREATION_CALLBACK_KEY =
+      new CreationExtras.Key<Function1<Object, ViewModel>>() {};
 
   /** Hilt module for providing the empty multi-binding map of ViewModels. */
   @Module
@@ -64,11 +73,15 @@ public final class HiltViewModelFactory implements ViewModelProvider.Factory {
     @Multibinds
     @HiltViewModelMap
     Map<String, ViewModel> hiltViewModelMap();
+
+    @Multibinds
+    @HiltViewModelAssistedMap
+    Map<String, Object> hiltViewModelAssistedMap();
   }
 
   private final Set<String> hiltViewModelKeys;
   private final ViewModelProvider.Factory delegateFactory;
-  private final AbstractSavedStateViewModelFactory hiltViewModelFactory;
+  private final ViewModelProvider.Factory hiltViewModelFactory;
 
   public HiltViewModelFactory(
       @NonNull Set<String> hiltViewModelKeys,
@@ -77,31 +90,75 @@ public final class HiltViewModelFactory implements ViewModelProvider.Factory {
     this.hiltViewModelKeys = hiltViewModelKeys;
     this.delegateFactory = delegateFactory;
     this.hiltViewModelFactory =
-        new AbstractSavedStateViewModelFactory() {
+        new ViewModelProvider.Factory() {
           @NonNull
           @Override
-          @SuppressWarnings("unchecked")
-          protected <T extends ViewModel> T create(
-              @NonNull String key, @NonNull Class<T> modelClass, @NonNull SavedStateHandle handle) {
+          public <T extends ViewModel> T create(
+              @NonNull Class<T> modelClass, @NonNull CreationExtras extras) {
             RetainedLifecycleImpl lifecycle = new RetainedLifecycleImpl();
-            ViewModelComponent component = viewModelComponentBuilder
-                .savedStateHandle(handle)
-                .viewModelLifecycle(lifecycle)
-                .build();
+            ViewModelComponent component =
+                viewModelComponentBuilder
+                    .savedStateHandle(createSavedStateHandle(extras))
+                    .viewModelLifecycle(lifecycle)
+                    .build();
+            T viewModel = createViewModel(component, modelClass, extras);
+            viewModel.addCloseable(lifecycle::dispatchOnCleared);
+            return viewModel;
+          }
+
+          private <T extends ViewModel> T createViewModel(
+              @NonNull ViewModelComponent component,
+              @NonNull Class<T> modelClass,
+              @NonNull CreationExtras extras) {
             Provider<? extends ViewModel> provider =
                 EntryPoints.get(component, ViewModelFactoriesEntryPoint.class)
                     .getHiltViewModelMap()
                     .get(modelClass.getName());
-            if (provider == null) {
-              throw new IllegalStateException(
-                  "Expected the @HiltViewModel-annotated class '"
-                      + modelClass.getName()
-                      + "' to be available in the multi-binding of "
-                      + "@HiltViewModelMap but none was found.");
+            Function1<Object, ViewModel> creationCallback = extras.get(CREATION_CALLBACK_KEY);
+            Object assistedFactory =
+                EntryPoints.get(component, ViewModelFactoriesEntryPoint.class)
+                    .getHiltViewModelAssistedMap()
+                    .get(modelClass.getName());
+
+            if (assistedFactory == null) {
+              if (creationCallback == null) {
+                if (provider == null) {
+                  throw new IllegalStateException(
+                      "Expected the @HiltViewModel-annotated class "
+                          + modelClass.getName()
+                          + " to be available in the multi-binding of "
+                          + "@HiltViewModelMap"
+                          + " but none was found.");
+                } else {
+                  return (T) provider.get();
+                }
+              } else {
+                // Provider could be null or non-null.
+                throw new IllegalStateException(
+                    "Found creation callback but class "
+                        + modelClass.getName()
+                        + " does not have an assisted factory specified in @HiltViewModel.");
+              }
+            } else {
+              if (provider == null) {
+                if (creationCallback == null) {
+                  throw new IllegalStateException(
+                      "Found @HiltViewModel-annotated class "
+                          + modelClass.getName()
+                          + " using @AssistedInject but no creation callback"
+                          + " was provided in CreationExtras.");
+                } else {
+                  return (T) creationCallback.invoke(assistedFactory);
+                }
+              } else {
+                // Creation callback could be null or non-null.
+                throw new AssertionError(
+                    "Found the @HiltViewModel-annotated class "
+                        + modelClass.getName()
+                        + " in both the multi-bindings of "
+                        + "@HiltViewModelMap and @HiltViewModelAssistedMap.");
+              }
             }
-            ViewModel viewModel = provider.get();
-            viewModel.addCloseable(lifecycle::dispatchOnCleared);
-            return (T) viewModel;
           }
         };
   }

@@ -15,8 +15,8 @@
 # Description:
 #   Tests for internal code for implementing Hilt processors.
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
 load("//java/dagger/testing/compile:macros.bzl", "kt_compiler_test")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//:src"])
 
@@ -33,6 +33,7 @@ kt_compiler_test(
         "//java/dagger/hilt/android/testing/compile",
         "//java/dagger/internal/codegen/xprocessing",
         "//java/dagger/internal/codegen/xprocessing:xprocessing-testing",
+        "//third_party/java/guava/collect",
         "//third_party/java/junit",
     ],
 )

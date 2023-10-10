@@ -73,6 +73,7 @@ public final class ClassNames {
       get("dagger.hilt.internal.definecomponent", "DefineComponentClasses");
 
   public static final ClassName ASSISTED_INJECT = get("dagger.assisted", "AssistedInject");
+  public static final ClassName ASSISTED_FACTORY = get("dagger.assisted", "AssistedFactory");
   public static final ClassName BINDS =
       get("dagger", "Binds");
   public static final ClassName BINDS_OPTIONAL_OF =
