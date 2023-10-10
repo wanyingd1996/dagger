@@ -30,10 +30,7 @@ import dagger.spi.model.DaggerType
 
 fun DaggerType.hasAnnotation(className: ClassName): Boolean =
   when (checkNotNull(backend())) {
-    JAVAC -> {
-      val javac = javac()
-      Processors.hasAnnotation(MoreTypes.asTypeElement(javac), className)
-    }
+    JAVAC -> Processors.hasAnnotation(MoreTypes.asTypeElement(javac()), className)
     KSP -> ksp().declaration.hasAnnotation(className.canonicalName())
   }
 
@@ -44,19 +41,13 @@ fun KSDeclaration.hasAnnotation(annotationName: String): Boolean =
 
 fun DaggerElement.hasAnnotation(className: ClassName) =
   when (checkNotNull(backend())) {
-    JAVAC -> {
-      val javac = javac()
-      Processors.hasAnnotation(javac, className)
-    }
+    JAVAC -> Processors.hasAnnotation(javac(), className)
     KSP -> ksp().hasAnnotation(className)
   }
 
 fun DaggerAnnotation.getQualifiedName() =
   when (checkNotNull(backend())) {
-    JAVAC -> {
-      val javac = javac()
-      MoreTypes.asTypeElement(javac.annotationType).qualifiedName.toString()
-    }
+    JAVAC -> MoreTypes.asTypeElement(javac().annotationType).qualifiedName.toString()
     KSP -> ksp().annotationType.resolve().declaration.qualifiedName!!.asString()
   }
 
