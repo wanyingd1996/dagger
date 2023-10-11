@@ -22,7 +22,6 @@ import static dagger.internal.codegen.extension.DaggerStreams.toImmutableSet;
 import static dagger.internal.codegen.xprocessing.XAnnotations.getClassName;
 import static dagger.internal.codegen.xprocessing.XElements.asMethod;
 import static dagger.internal.codegen.xprocessing.XElements.asVariable;
-import static dagger.internal.codegen.xprocessing.XElements.isFromJavaSource;
 
 import androidx.room.compiler.processing.XAnnotation;
 import androidx.room.compiler.processing.XElement;
@@ -62,7 +61,7 @@ public abstract class Nullability {
    * explicit {@code ?} usages on kotlin types.
    */
   private static boolean isKotlinTypeNullable(XElement element) {
-    if (isFromJavaSource(element)) {
+    if (element.getClosestMemberContainer().isFromJava()) {
       // Note: Technically, it isn't possible for Java sources to have nullable types like in Kotlin
       // sources, but for some reason KSP treats certain types as nullable if they have a
       // specific @Nullable (TYPE_USE target) annotation. Thus, to avoid inconsistencies with KAPT,
