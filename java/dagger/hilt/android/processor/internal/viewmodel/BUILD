@@ -64,6 +64,7 @@ kt_jvm_library(
         "//:spi",
         "//java/dagger/hilt/android/processor/internal:android_classnames",
         "//java/dagger/hilt/processor/internal:dagger_models",
+        "//java/dagger/internal/codegen/xprocessing",
         "//third_party/java/auto:service",
         "//third_party/java/guava/graph",
         "//third_party/java/javapoet",
