@@ -81,6 +81,8 @@ public final class TypeNames {
   // Dagger Producers classnames
   public static final ClassName ABSTRACT_PRODUCER =
       ClassName.get("dagger.producers.internal", "AbstractProducer");
+  public static final ClassName ABSTRACT_PRODUCES_METHOD_PRODUCER =
+      ClassName.get("dagger.producers.internal", "AbstractProducesMethodProducer");
   public static final ClassName CANCELLATION_LISTENER =
       ClassName.get("dagger.producers.internal", "CancellationListener");
   public static final ClassName CANCELLATION_POLICY =

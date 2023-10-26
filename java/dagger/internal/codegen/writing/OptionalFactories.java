@@ -62,15 +62,12 @@ import dagger.internal.codegen.binding.FrameworkType;
 import dagger.internal.codegen.javapoet.AnnotationSpecs;
 import dagger.internal.codegen.javapoet.TypeNames;
 import dagger.internal.codegen.model.RequestKind;
-import dagger.producers.Producer;
-import dagger.producers.internal.Producers;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.Executor;
 import javax.inject.Inject;
-import javax.inject.Provider;
 
 /** The nested class and static methods required by the component to implement optional bindings. */
 // TODO(dpb): Name members simply if a component uses only one of Guava or JDK Optional.
@@ -193,7 +190,7 @@ final class OptionalFactories {
   /** Information about the type of a factory for present bindings. */
   @AutoValue
   abstract static class PresentFactorySpec {
-    /** Whether the factory is a {@link Provider} or a {@link Producer}. */
+    /** Whether the factory is a {@code Provider} or a {@code Producer}. */
     abstract FrameworkType frameworkType();
 
     /** What kind of {@code Optional} is returned. */
@@ -302,7 +299,7 @@ final class OptionalFactories {
    *       {@code Producer<Optional<Produced<T>>>}.
    * </ul>
    *
-   * @param delegateFactory an expression for a {@link Provider} or {@link Producer} of the
+   * @param delegateFactory an expression for a {@code Provider} or {@code Producer} of the
    *     underlying type
    */
   CodeBlock presentOptionalFactory(ContributionBinding binding, CodeBlock delegateFactory) {
@@ -415,7 +412,9 @@ final class OptionalFactories {
                         spec.optionalKind(),
                         spec.valueType(),
                         CodeBlock.of(
-                            "$T.createFutureProduced($N.get())", Producers.class, delegateField)))
+                            "$T.createFutureProduced($N.get())",
+                            TypeNames.PRODUCERS,
+                            delegateField)))
                 .build();
 
           default:

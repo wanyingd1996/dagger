@@ -77,16 +77,13 @@ import dagger.internal.codegen.javapoet.TypeNames;
 import dagger.internal.codegen.model.DependencyRequest;
 import dagger.internal.codegen.model.Key;
 import dagger.internal.codegen.model.RequestKind;
-import dagger.producers.Producer;
-import dagger.producers.internal.AbstractProducesMethodProducer;
-import dagger.producers.internal.Producers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import javax.inject.Inject;
 
-/** Generates {@link Producer} implementations from {@link ProductionBinding} instances. */
+/** Generates {@code Producer} implementations from {@link ProductionBinding} instances. */
 public final class ProducerFactoryGenerator extends SourceFileGenerator<ProductionBinding> {
   private final CompilerOptions compilerOptions;
   private final KeyFactory keyFactory;
@@ -219,7 +216,7 @@ public final class ProducerFactoryGenerator extends SourceFileGenerator<Producti
     factoryBuilder
         .superclass(
             ParameterizedTypeName.get(
-                ClassName.get(AbstractProducesMethodProducer.class),
+                TypeNames.ABSTRACT_PRODUCES_METHOD_PRODUCER,
                 futureTransform.applyArgType(),
                 providedTypeName))
         .addMethod(constructor)
@@ -264,7 +261,7 @@ public final class ProducerFactoryGenerator extends SourceFileGenerator<Producti
     CodeBlock.Builder statement = CodeBlock.builder();
     if (type != null && type.rawType.equals(TypeNames.PRODUCER)) {
       statement.addStatement(
-          "this.$1N = $2T.nonCancellationPropagatingViewOf($1N)", field, Producers.class);
+          "this.$1N = $2T.nonCancellationPropagatingViewOf($1N)", field, TypeNames.PRODUCERS);
     } else {
       statement.addStatement("this.$1N = $1N", field);
     }
@@ -275,7 +272,7 @@ public final class ProducerFactoryGenerator extends SourceFileGenerator<Producti
       MethodSpec.Builder constructorBuilder, FieldSpec field, ParameterizedTypeName type) {
     if (type != null && type.rawType.equals(TypeNames.PRODUCER)) {
       constructorBuilder.addStatement(
-          "this.$1N = $2T.nonCancellationPropagatingViewOf($1N)", field, Producers.class);
+          "this.$1N = $2T.nonCancellationPropagatingViewOf($1N)", field, TypeNames.PRODUCERS);
     } else {
       constructorBuilder.addStatement("this.$1N = $1N", field);
     }

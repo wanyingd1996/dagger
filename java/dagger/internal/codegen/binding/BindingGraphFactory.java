@@ -58,7 +58,6 @@ import dagger.internal.codegen.model.DependencyRequest;
 import dagger.internal.codegen.model.Key;
 import dagger.internal.codegen.model.Scope;
 import dagger.internal.codegen.xprocessing.XTypeElements;
-import dagger.producers.internal.ProductionExecutorModule;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -292,7 +291,7 @@ public final class BindingGraphFactory implements ClearableCache {
             processingEnv, generatedMonitoringModuleName(componentDefinitionType)));
   }
 
-  /** Returns a descriptor {@link ProductionExecutorModule}. */
+  /** Returns a descriptor {@code ProductionExecutorModule}. */
   private ModuleDescriptor descriptorForProductionExecutorModule() {
     return moduleDescriptorFactory.create(
         processingEnv.findTypeElement(TypeNames.PRODUCTION_EXECTUTOR_MODULE));
