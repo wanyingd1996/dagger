@@ -56,6 +56,12 @@ android_library(
     ],
 )
 
+android_library(
+    name = "activity_retained_saved_state",
+    srcs = ["ActivityRetainedSavedState.java"],
+    deps = ["//third_party/java/jsr330_inject"],
+)
+
 compat_kt_android_library(
     name = "hilt_view_model_extensions",
     srcs = ["HiltViewModelExtensions.kt"],

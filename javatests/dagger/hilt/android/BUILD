@@ -589,6 +589,7 @@ android_local_test(
         "//java/dagger/hilt:install_in",
         "//java/dagger/hilt/android:android_entry_point",
         "//java/dagger/hilt/android:package_info",
+        "//java/dagger/hilt/android/lifecycle:activity_retained_saved_state",
         "//java/dagger/hilt/android/lifecycle:hilt_view_model",
         "//java/dagger/hilt/android/scopes",
         "//java/dagger/hilt/android/testing:hilt_android_test",
