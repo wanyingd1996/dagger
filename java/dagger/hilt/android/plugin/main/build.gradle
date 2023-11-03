@@ -85,14 +85,11 @@ tasks.withType(PluginUnderTestMetadata.class).named("pluginUnderTestMetadata").c
   it.pluginClasspath.from(configurations.testPluginCompile)
 }
 
-kotlin {
-  jvmToolchain(11)
-}
-
 compileKotlin {
   kotlinOptions {
     allWarningsAsErrors = true
     freeCompilerArgs += [ "-opt-in=kotlin.ExperimentalStdlibApi" ]
+    jvmTarget = 11
   }
 }
 
