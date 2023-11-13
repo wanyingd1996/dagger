@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Dagger Authors.
+ * Copyright (C) 2023 The Dagger Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-rootProject.name = 'hilt-gradle-plugin'
-include ':main'
-include ':agp-wrapper'
-include ':agp-wrapper-impl'
-include ':agp-wrapper-7-0'
-include ':agp-wrapper-7-1'
-include ':agp-wrapper-7-2'
+package dagger.hilt.android.internal;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * The marker annotation used to denote that we need to inject super.onReceive() call
+ * to the @AndroidEntryPoint-annotated BroadcastReceiver's onReceive() method.
+ */
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.TYPE)
+public @interface OnReceiveBytecodeInjectionMarker { }
 

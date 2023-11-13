@@ -21,8 +21,6 @@ import com.android.build.api.instrumentation.FramesComputationMode
 import com.android.build.api.instrumentation.InstrumentationParameters
 import com.android.build.api.instrumentation.InstrumentationScope
 import com.android.build.api.variant.Component
-import java.io.File
-import org.gradle.api.Project
 
 internal class ComponentCompatApi72Impl(private val component: Component) : ComponentCompat() {
 
@@ -44,7 +42,4 @@ internal class ComponentCompatApi72Impl(private val component: Component) : Comp
   override fun setAsmFramesComputationMode(mode: FramesComputationMode) {
     component.instrumentation.setAsmFramesComputationMode(mode)
   }
-
-  override fun getJavaCompileClassesDir(project: Project): File =
-    project.layout.buildDirectory.dir("intermediates/javac/${component.name}/classes").get().asFile
 }

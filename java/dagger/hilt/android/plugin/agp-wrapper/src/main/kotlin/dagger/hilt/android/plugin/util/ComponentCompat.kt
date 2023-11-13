@@ -42,7 +42,4 @@ abstract class ComponentCompat {
 
   /** Redeclaration of [com.android.build.api.variant.Component.setAsmFramesComputationMode] */
   abstract fun setAsmFramesComputationMode(mode: FramesComputationMode)
-
-  /** Return the directory that contains the classes from JavaCompile task */
-  abstract fun getJavaCompileClassesDir(project: Project): File
 }

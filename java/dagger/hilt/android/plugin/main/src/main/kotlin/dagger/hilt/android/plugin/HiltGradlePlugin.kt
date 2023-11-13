@@ -245,11 +245,9 @@ class HiltGradlePlugin @Inject constructor(
     fun registerTransform(androidComponent: ComponentCompat) {
       androidComponent.transformClassesWith(
         classVisitorFactoryImplClass = AndroidEntryPointClassVisitor.Factory::class.java,
-        scope = InstrumentationScope.PROJECT
-      ) { params ->
-        val classesDir = androidComponent.getJavaCompileClassesDir(project)
-        params.additionalClassesDir.set(classesDir)
-      }
+        scope = InstrumentationScope.PROJECT,
+        instrumentationParamsConfig = {}
+      )
       androidComponent.setAsmFramesComputationMode(
         FramesComputationMode.COMPUTE_FRAMES_FOR_INSTRUMENTED_METHODS
       )
