@@ -88,6 +88,30 @@ public class AndroidMapKeyValidatorTest {
   }
 
   @Test
+  public void wildCardFactoryType() {
+    Source module =
+        CompilerTests.kotlinSource(
+            "AndroidModule.kt",
+            "package test",
+            "",
+            "import dagger.Module",
+            "import dagger.Binds",
+            "import dagger.android.AndroidInjector",
+            "import dagger.multibindings.ClassKey",
+            "import dagger.multibindings.IntoMap",
+            "",
+            "@Module",
+            "internal abstract class AndroidModule {",
+            "   @Binds",
+            "   @IntoMap",
+            "   @ClassKey(FooActivity::class)",
+            "   abstract fun bindWildcardFactory(factory: FooActivity.Factory):"
+                + " AndroidInjector.Factory<*>",
+            "}");
+    compile(module, FOO_ACTIVITY).compile(subject -> subject.hasErrorCount(0));
+  }
+
+  @Test
   public void rawBuilderType() {
     Source module =
         moduleWithMethod(

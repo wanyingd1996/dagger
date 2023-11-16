@@ -106,7 +106,8 @@ final class AndroidMapKeyProcessingStep extends BaseProcessingStep {
     XType returnType = method.getReturnType();
     XType requiredReturnType = injectorFactoryOf(processingEnv.getWildcardType(null, null));
 
-    if (!returnType.isSameType(requiredReturnType)) {
+    // TODO(b/311460276) use XType.isSameType when the bug is fixed.
+    if (!returnType.getTypeName().equals(requiredReturnType.getTypeName())) {
       processingEnv
           .getMessager()
           .printMessage(
