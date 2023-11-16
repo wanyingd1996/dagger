@@ -37,7 +37,6 @@ import androidx.room.compiler.processing.XProcessingEnv;
 import androidx.room.compiler.processing.XTypeElement;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
@@ -51,11 +50,13 @@ import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.base.OptionalType;
 import dagger.internal.codegen.compileroption.CompilerOptions;
 import dagger.internal.codegen.javapoet.TypeNames;
+import dagger.internal.codegen.model.BindingGraph.ComponentNode;
 import dagger.internal.codegen.model.BindingKind;
 import dagger.internal.codegen.model.ComponentPath;
 import dagger.internal.codegen.model.DaggerTypeElement;
 import dagger.internal.codegen.model.DependencyRequest;
 import dagger.internal.codegen.model.Key;
+import dagger.internal.codegen.model.RequestKind;
 import dagger.internal.codegen.model.Scope;
 import dagger.internal.codegen.xprocessing.XTypeElements;
 import java.util.ArrayDeque;
@@ -244,12 +245,7 @@ public final class BindingGraphFactory implements ClearableCache {
       }
     }
 
-    return new LegacyBindingGraph(
-        componentPath,
-        componentDescriptor,
-        ImmutableMap.copyOf(requestResolver.getResolvedContributionBindings()),
-        ImmutableMap.copyOf(requestResolver.getResolvedMembersInjectionBindings()),
-        ImmutableList.copyOf(subgraphs.build()));
+    return new LegacyBindingGraph(requestResolver, subgraphs.build());
   }
 
   /**
@@ -306,6 +302,68 @@ public final class BindingGraphFactory implements ClearableCache {
   @Override
   public void clearCache() {
     keysMatchingRequestCache.clear();
+  }
+
+  /** Represents a fully resolved binding graph. */
+  static final class LegacyBindingGraph {
+    private final Resolver resolver;
+    private final ImmutableList<LegacyBindingGraph> resolvedSubgraphs;
+    private final ComponentNode componentNode;
+
+    LegacyBindingGraph(Resolver resolver, ImmutableList<LegacyBindingGraph> resolvedSubgraphs) {
+      this.resolver = resolver;
+      this.resolvedSubgraphs = resolvedSubgraphs;
+      this.componentNode =
+          ComponentNodeImpl.create(resolver.componentPath, resolver.componentDescriptor);
+    }
+
+    /** Returns the {@link ComponentNode} associated with this binding graph. */
+    ComponentNode componentNode() {
+      return componentNode;
+    }
+
+    /** Returns the {@link ComponentPath} associated with this binding graph. */
+    ComponentPath componentPath() {
+      return resolver.componentPath;
+    }
+
+    /** Returns the {@link ComponentDescriptor} associated with this binding graph. */
+    ComponentDescriptor componentDescriptor() {
+      return resolver.componentDescriptor;
+    }
+
+    /**
+     * Returns the {@link ResolvedBindings} in this graph or a parent graph that matches the given
+     * request.
+     *
+     * <p>An exception is thrown if there are no resolved bindings found for the request; however,
+     * this should never happen since all dependencies should have been resolved at this point.
+     */
+    ResolvedBindings resolvedBindings(BindingRequest request) {
+      return request.isRequestKind(RequestKind.MEMBERS_INJECTION)
+          ? resolver.getResolvedMembersInjectionBindings(request.key())
+          : resolver.getResolvedContributionBindings(request.key());
+    }
+
+    /**
+     * Returns all {@link ResolvedBindings} for the given request.
+     *
+     * <p>Note that this only returns the bindings resolved in this component. Bindings resolved in
+     * parent components are not included.
+     */
+    Iterable<ResolvedBindings> resolvedBindings() {
+      // Don't return an immutable collection - this is only ever used for looping over all bindings
+      // in the graph. Copying is wasteful, especially if is a hashing collection, since the values
+      // should all, by definition, be distinct.
+      return Iterables.concat(
+          resolver.resolvedMembersInjectionBindings.values(),
+          resolver.resolvedContributionBindings.values());
+    }
+
+    /** Returns the resolved subgraphs. */
+    ImmutableList<LegacyBindingGraph> subgraphs() {
+      return resolvedSubgraphs;
+    }
   }
 
   private final class Resolver {
@@ -849,23 +907,18 @@ public final class BindingGraphFactory implements ClearableCache {
       }
     }
 
-    /**
-     * Returns all of the {@link ResolvedBindings} for {@link ContributionBinding}s from this and
-     * all ancestor resolvers, indexed by {@link ResolvedBindings#key()}.
-     */
-    Map<Key, ResolvedBindings> getResolvedContributionBindings() {
-      Map<Key, ResolvedBindings> bindings = new LinkedHashMap<>();
-      parentResolver.ifPresent(parent -> bindings.putAll(parent.getResolvedContributionBindings()));
-      bindings.putAll(resolvedContributionBindings);
-      return bindings;
+    private ResolvedBindings getResolvedContributionBindings(Key key) {
+      if (resolvedContributionBindings.containsKey(key)) {
+        return resolvedContributionBindings.get(key);
+      }
+      if (parentResolver.isPresent()) {
+        return parentResolver.get().getResolvedContributionBindings(key);
+      }
+      throw new AssertionError("No resolved bindings for key: " + key);
     }
 
-    /**
-     * Returns all of the {@link ResolvedBindings} for {@link MembersInjectionBinding} from this
-     * resolvers, indexed by {@link ResolvedBindings#key()}.
-     */
-    ImmutableMap<Key, ResolvedBindings> getResolvedMembersInjectionBindings() {
-      return ImmutableMap.copyOf(resolvedMembersInjectionBindings);
+    private ResolvedBindings getResolvedMembersInjectionBindings(Key key) {
+      return resolvedMembersInjectionBindings.get(key);
     }
 
     private final class LocalDependencyChecker {
