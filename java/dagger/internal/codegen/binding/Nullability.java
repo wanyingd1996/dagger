@@ -51,7 +51,11 @@ public abstract class Nullability {
   public static Nullability of(XElement element) {
     return new AutoValue_Nullability(
         /* isKotlinTypeNullable= */ isKotlinTypeNullable(element),
-        /* nullableAnnotations= */ getNullableAnnotations(element.getAllAnnotations().stream()));
+        /* nullableAnnotations= */ getNullableAnnotations(element));
+  }
+
+  private static ImmutableSet<ClassName> getNullableAnnotations(XElement element) {
+    return getNullableAnnotations(element.getAllAnnotations().stream());
   }
 
   private static ImmutableSet<ClassName> getNullableAnnotations(Stream<XAnnotation> annotations) {

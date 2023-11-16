@@ -43,8 +43,7 @@ public final class JspecifyNullableTest {
     }
 
     @Provides
-    @Nullable
-    Integer provideInt() {
+    @Nullable Integer provideInt() {
       return value;
     }
   }
