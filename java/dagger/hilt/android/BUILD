@@ -147,6 +147,14 @@ android_library(
     ],
 )
 
+android_library(
+    name = "unstable_api",
+    srcs = ["UnstableApi.java"],
+    deps = [
+        "@maven//:androidx_annotation_annotation_experimental",
+    ],
+)
+
 java_library(
     name = "package_info",
     srcs = ["package-info.java"],
@@ -164,6 +172,7 @@ android_library(
         ":entry_point_accessors",
         ":hilt_android_app",
         ":package_info",
+        ":unstable_api",
         "//java/dagger/hilt:artifact-core-lib",
         "//java/dagger/hilt/android/migration:custom_inject",
         "//java/dagger/hilt/android/migration:optional_inject",
@@ -181,6 +190,7 @@ gen_maven_artifact(
         "//java/dagger/hilt/android:activity_retained_lifecycle",
         "//java/dagger/hilt/android:android_entry_point",
         "//java/dagger/hilt/android:hilt_android_app",
+        "//java/dagger/hilt/android:unstable_api",
         "//java/dagger/hilt/android:early_entry_point",
         "//java/dagger/hilt/android:package_info",
         "//java/dagger/hilt/android:view_model_lifecycle",
@@ -220,6 +230,7 @@ gen_maven_artifact(
     artifact_target_maven_deps = [
         "androidx.activity:activity",
         "androidx.annotation:annotation",
+        "androidx.annotation:annotation-experimental",
         "androidx.fragment:fragment",
         "androidx.lifecycle:lifecycle-common",
         "androidx.lifecycle:lifecycle-viewmodel",

@@ -220,6 +220,7 @@ gen_maven_artifact(
     artifact_target_maven_deps = [
         "androidx.activity:activity",
         "androidx.annotation:annotation",
+        "androidx.annotation:annotation-experimental",
         "androidx.fragment:fragment",
         "androidx.lifecycle:lifecycle-common",
         "androidx.lifecycle:lifecycle-viewmodel",

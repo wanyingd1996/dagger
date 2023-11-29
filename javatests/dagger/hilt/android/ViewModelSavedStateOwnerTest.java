@@ -24,6 +24,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
@@ -45,6 +46,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
 
 /** Test that you can use the Hilt ViewModel factory with other owners. */
+@OptIn(markerClass = UnstableApi.class)
 @HiltAndroidTest
 @RunWith(AndroidJUnit4.class)
 // Robolectric requires Java9 to run API 29 and above, so use API 28 instead

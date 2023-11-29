@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package dagger.hilt.android.lifecycle;
+package dagger.hilt.android;
 
-import dagger.hilt.android.UnstableApi;
+import androidx.annotation.RequiresOptIn;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.inject.Qualifier;
 
-/** Qualifies a binding that belongs to ActivityRetainedComponent. */
-@Qualifier
-@Target({ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
-@UnstableApi
+/** Mark unstable Api usage. */
 @Retention(RetentionPolicy.CLASS)
-public @interface ActivityRetainedSavedState {}
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@RequiresOptIn(level = RequiresOptIn.Level.ERROR)
+public @interface UnstableApi {}

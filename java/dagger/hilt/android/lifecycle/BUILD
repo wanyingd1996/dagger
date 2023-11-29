@@ -59,7 +59,10 @@ android_library(
 android_library(
     name = "activity_retained_saved_state",
     srcs = ["ActivityRetainedSavedState.java"],
-    deps = ["//third_party/java/jsr330_inject"],
+    deps = [
+        "//java/dagger/hilt/android:unstable_api",
+        "//third_party/java/jsr330_inject",
+    ],
 )
 
 compat_kt_android_library(
