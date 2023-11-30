@@ -176,7 +176,7 @@ KSP_VERSION = KOTLIN_VERSION + "-1.0.14"
 maven_install(
     artifacts = [
         "androidx.annotation:annotation:1.1.0",
-        "androidx.annotation:annotation-experimental:1.2.0",
+        "androidx.annotation:annotation-experimental:1.3.1",
         "androidx.appcompat:appcompat:1.3.1",
         "androidx.activity:activity:1.5.1",
         "androidx.fragment:fragment:1.5.1",
