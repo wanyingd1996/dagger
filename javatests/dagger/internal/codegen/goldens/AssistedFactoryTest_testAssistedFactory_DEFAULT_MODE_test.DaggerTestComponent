@@ -1,8 +1,8 @@
 package test;
 
 import dagger.internal.DaggerGenerated;
+import dagger.internal.Provider;
 import javax.annotation.processing.Generated;
-import javax.inject.Provider;
 
 @DaggerGenerated
 @Generated(
@@ -52,7 +52,7 @@ final class DaggerTestComponent {
     @SuppressWarnings("unchecked")
     private void initialize() {
       this.fooProvider = Foo_Factory.create(Bar_Factory.create());
-      this.fooFactoryProvider = FooFactory_Impl.create(fooProvider);
+      this.fooFactoryProvider = FooFactory_Impl.createFactoryProvider(fooProvider);
     }
 
     @Override

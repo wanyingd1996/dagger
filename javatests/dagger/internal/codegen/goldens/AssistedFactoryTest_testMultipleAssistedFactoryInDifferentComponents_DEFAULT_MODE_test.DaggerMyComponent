@@ -1,8 +1,8 @@
 package test;
 
 import dagger.internal.DaggerGenerated;
+import dagger.internal.Provider;
 import javax.annotation.processing.Generated;
-import javax.inject.Provider;
 
 @DaggerGenerated
 @Generated(
@@ -55,7 +55,7 @@ final class DaggerMyComponent {
     @SuppressWarnings("unchecked")
     private void initialize() {
       this.myAssistedClassProvider = MyAssistedClass_Factory.create(Baz_Factory.create());
-      this.mySubcomponentAssistedFactoryProvider = MySubcomponentAssistedFactory_Impl.create(myAssistedClassProvider);
+      this.mySubcomponentAssistedFactoryProvider = MySubcomponentAssistedFactory_Impl.createFactoryProvider(myAssistedClassProvider);
     }
 
     @Override
@@ -80,7 +80,7 @@ final class DaggerMyComponent {
     @SuppressWarnings("unchecked")
     private void initialize() {
       this.myAssistedClassProvider = MyAssistedClass_Factory.create(Baz_Factory.create());
-      this.myComponentAssistedFactoryProvider = MyComponentAssistedFactory_Impl.create(myAssistedClassProvider);
+      this.myComponentAssistedFactoryProvider = MyComponentAssistedFactory_Impl.createFactoryProvider(myAssistedClassProvider);
     }
 
     @Override
