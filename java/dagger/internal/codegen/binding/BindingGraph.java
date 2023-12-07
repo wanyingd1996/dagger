@@ -149,7 +149,7 @@ public abstract class BindingGraph {
 
     /** Returns the set of strongly connected nodes in this graph in reverse topological order. */
     @Memoized
-    public ImmutableSet<ImmutableSet<Node>> stronglyConnectedNodes() {
+    public ImmutableList<ImmutableSet<Node>> stronglyConnectedNodes() {
       return TarjanSCCs.<Node>compute(
           ImmutableSet.copyOf(network().nodes()),
           // NetworkBuilder does not have a stable successor order, so we have to roll our own

@@ -648,8 +648,7 @@ public final class BindingGraphFactory implements ClearableCache {
      * ResolvedBindings#owningComponent(ContributionBinding)}.
      */
     private XTypeElement getOwningComponent(Key requestKey, ContributionBinding binding) {
-      if (isResolvedInParent(requestKey, binding)
-          && !new RequiresResolutionChecker().requiresResolution(binding)) {
+      if (isResolvedInParent(requestKey, binding) && !requiresResolution(binding)) {
         ResolvedBindings parentResolvedBindings =
             parentResolver.get().resolvedContributionBindings.get(requestKey);
         return parentResolvedBindings.owningComponent(binding);
@@ -876,7 +875,7 @@ public final class BindingGraphFactory implements ClearableCache {
             previouslyResolvedBindings.bindings().stream()
                 .anyMatch(binding -> binding.kind() == BindingKind.ASSISTED_INJECTION);
         if (!isAssistedInjectionBinding
-                && !new RequiresResolutionChecker().requiresResolution(key)
+                && !requiresResolution(key)
                 && getLocalExplicitBindings(key).isEmpty()) {
           /* Cache the inherited parent component's bindings in case resolving at the parent found
            * bindings in some component between this one and the previously-resolved one. */
@@ -921,7 +920,15 @@ public final class BindingGraphFactory implements ClearableCache {
       return resolvedMembersInjectionBindings.get(key);
     }
 
-    private final class RequiresResolutionChecker {
+    private boolean requiresResolution(Key key) {
+      return new LegacyRequiresResolutionChecker().requiresResolution(key);
+    }
+
+    private boolean requiresResolution(Binding binding) {
+      return new LegacyRequiresResolutionChecker().requiresResolution(binding);
+    }
+
+    private final class LegacyRequiresResolutionChecker {
       private final Set<Object> cycleChecker = new HashSet<>();
 
       /**
@@ -969,9 +976,7 @@ public final class BindingGraphFactory implements ClearableCache {
             Resolver.this,
             key);
         ResolvedBindings previouslyResolvedBindings = getPreviouslyResolvedBindings(key).get();
-        if (hasLocalMultibindingContributions(key)
-                || hasLocalOptionalBindingContribution(previouslyResolvedBindings)
-        ) {
+        if (hasLocalBindings(previouslyResolvedBindings)) {
           return true;
         }
 
@@ -995,35 +1000,50 @@ public final class BindingGraphFactory implements ClearableCache {
         }
         return false;
       }
+    }
 
-      /**
-       * Returns {@code true} if there is at least one multibinding contribution declared within
-       * this component's modules that matches the key.
-       */
-      private boolean hasLocalMultibindingContributions(Key requestKey) {
-        return keysMatchingRequest(requestKey)
-            .stream()
-            .anyMatch(key -> !getLocalExplicitMultibindings(key).isEmpty());
-      }
+    private boolean hasLocalBindings(Binding binding) {
+      return hasLocalMultibindingContributions(binding.key())
+          || hasLocalOptionalBindingContribution(
+              binding.key(), ImmutableSet.of((ContributionBinding) binding));
+    }
 
-      /**
-       * Returns {@code true} if there is a contribution in this component for an {@code
-       * Optional<Foo>} key that has not been contributed in a parent.
-       */
-      private boolean hasLocalOptionalBindingContribution(ResolvedBindings resolvedBindings) {
-        if (resolvedBindings
-            .contributionBindings()
-            .stream()
-            .map(ContributionBinding::kind)
-            .anyMatch(isEqual(OPTIONAL))) {
-          return !getLocalExplicitBindings(keyFactory.unwrapOptional(resolvedBindings.key()).get())
-              .isEmpty();
-        } else {
-          // If a parent contributes a @Provides Optional<Foo> binding and a child has a
-          // @BindsOptionalOf Foo method, the two should conflict, even if there is no binding for
-          // Foo on its own
-          return !getOptionalBindingDeclarations(resolvedBindings.key()).isEmpty();
-        }
+    private boolean hasLocalBindings(ResolvedBindings resolvedBindings) {
+      return hasLocalMultibindingContributions(resolvedBindings.key())
+          || hasLocalOptionalBindingContribution(resolvedBindings);
+    }
+
+    /**
+     * Returns {@code true} if there is at least one multibinding contribution declared within
+     * this component's modules that matches the key.
+     */
+    private boolean hasLocalMultibindingContributions(Key requestKey) {
+      return keysMatchingRequest(requestKey)
+          .stream()
+          .anyMatch(key -> !getLocalExplicitMultibindings(key).isEmpty());
+    }
+
+    /**
+     * Returns {@code true} if there is a contribution in this component for an {@code
+     * Optional<Foo>} key that has not been contributed in a parent.
+     */
+    private boolean hasLocalOptionalBindingContribution(ResolvedBindings resolvedBindings) {
+      return hasLocalOptionalBindingContribution(
+          resolvedBindings.key(), resolvedBindings.contributionBindings());
+    }
+
+    private boolean hasLocalOptionalBindingContribution(
+          Key key, ImmutableSet<ContributionBinding> previousContributionBindings) {
+      if (previousContributionBindings.stream()
+          .map(ContributionBinding::kind)
+          .anyMatch(isEqual(OPTIONAL))) {
+        return !getLocalExplicitBindings(keyFactory.unwrapOptional(key).get())
+            .isEmpty();
+      } else {
+        // If a parent contributes a @Provides Optional<Foo> binding and a child has a
+        // @BindsOptionalOf Foo method, the two should conflict, even if there is no binding for
+        // Foo on its own
+        return !getOptionalBindingDeclarations(key).isEmpty();
       }
     }
   }
