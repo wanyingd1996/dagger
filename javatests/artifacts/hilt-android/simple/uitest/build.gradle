@@ -22,7 +22,7 @@ android {
     buildToolsVersion "33.0.0"
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 33
         testInstrumentationRunner "dagger.hilt.android.simple.uitest.TestRunner"
         missingDimensionStrategy 'tier', 'free'
