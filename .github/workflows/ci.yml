@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/artifact-android-emulator-tests
-        timeout-minutes: 25
+        timeout-minutes: 35
         with:
           api-level: '${{ matrix.api-level }}'
   publish-snapshot:
