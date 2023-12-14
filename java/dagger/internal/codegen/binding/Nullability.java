@@ -55,13 +55,16 @@ public abstract class Nullability {
   }
 
   private static ImmutableSet<ClassName> getNullableAnnotations(XElement element) {
-    return getNullableAnnotations(element.getAllAnnotations().stream());
+    return getNullableAnnotations(element.getAllAnnotations().stream(), ImmutableSet.of());
   }
 
-  private static ImmutableSet<ClassName> getNullableAnnotations(Stream<XAnnotation> annotations) {
+  private static ImmutableSet<ClassName> getNullableAnnotations(
+      Stream<XAnnotation> annotations,
+      ImmutableSet<ClassName> filterSet) {
     return annotations
         .map(XAnnotations::getClassName)
         .filter(annotation -> annotation.simpleName().contentEquals("Nullable"))
+        .filter(annotation -> !filterSet.contains(annotation))
         .collect(toImmutableSet());
   }
 

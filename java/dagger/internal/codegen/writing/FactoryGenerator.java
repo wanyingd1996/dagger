@@ -248,7 +248,6 @@ public final class FactoryGenerator extends SourceFileGenerator<ProvisionBinding
     MethodSpec.Builder getMethod =
         methodBuilder("get")
             .addModifiers(PUBLIC)
-            .returns(providedTypeName)
             .addParameters(assistedParameters.values());
 
     if (factoryTypeName(binding).isPresent()) {
@@ -270,10 +269,12 @@ public final class FactoryGenerator extends SourceFileGenerator<ProvisionBinding
           .nullability()
           .nullableAnnotations()
           .forEach(getMethod::addAnnotation);
+      getMethod.returns(providedTypeName);
       getMethod.addStatement("return $L", invokeNewInstance);
     } else if (!binding.injectionSites().isEmpty()) {
       CodeBlock instance = CodeBlock.of("instance");
       getMethod
+          .returns(providedTypeName)
           .addStatement("$T $L = $L", providedTypeName, instance, invokeNewInstance)
           .addCode(
               InjectionSiteMethod.invokeAll(
@@ -283,8 +284,11 @@ public final class FactoryGenerator extends SourceFileGenerator<ProvisionBinding
                   binding.key().type().xprocessing(),
                   sourceFiles.frameworkFieldUsages(binding.dependencies(), frameworkFields)::get))
           .addStatement("return $L", instance);
+
     } else {
-      getMethod.addStatement("return $L", invokeNewInstance);
+      getMethod
+          .returns(providedTypeName)
+          .addStatement("return $L", invokeNewInstance);
     }
     return getMethod.build();
   }

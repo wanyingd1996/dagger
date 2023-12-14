@@ -405,7 +405,8 @@ final class InjectionMethods {
     if (isVoid(method.getReturnType())) {
       return builder.addStatement("$L", invocation).build();
     } else {
-      Nullability.of(method)
+      Nullability nullability = Nullability.of(method);
+      nullability
           .nullableAnnotations()
           .forEach(builder::addAnnotation);
       return builder
