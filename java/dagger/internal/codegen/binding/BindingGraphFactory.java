@@ -185,7 +185,8 @@ public final class BindingGraphFactory implements ClearableCache {
     ImmutableSet.Builder<SubcomponentDeclaration> subcomponentDeclarations = ImmutableSet.builder();
 
     // Collect transitive module bindings and multibinding declarations.
-    for (ModuleDescriptor moduleDescriptor : modules(componentDescriptor, parentResolver)) {
+    ImmutableSet<ModuleDescriptor> modules = modules(componentDescriptor, parentResolver);
+    for (ModuleDescriptor moduleDescriptor : modules) {
       explicitBindingsBuilder.addAll(moduleDescriptor.bindings());
       multibindingDeclarations.addAll(moduleDescriptor.multibindingDeclarations());
       subcomponentDeclarations.addAll(moduleDescriptor.subcomponentDeclarations());
@@ -223,7 +224,7 @@ public final class BindingGraphFactory implements ClearableCache {
     if (createFullBindingGraph) {
       // Resolve the keys for all bindings in all modules, stripping any multibinding contribution
       // identifier so that the multibinding itself is resolved.
-      modules(componentDescriptor, parentResolver).stream()
+      modules.stream()
           .flatMap(module -> module.allBindingKeys().stream())
           .map(Key::withoutMultibindingContributionIdentifier)
           .forEach(requestResolver::resolve);

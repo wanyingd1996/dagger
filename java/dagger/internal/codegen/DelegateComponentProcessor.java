@@ -34,9 +34,11 @@ import dagger.internal.codegen.base.SourceFileGenerationException;
 import dagger.internal.codegen.base.SourceFileGenerator;
 import dagger.internal.codegen.base.SourceFileHjarGenerator;
 import dagger.internal.codegen.binding.BindingGraphFactory;
+import dagger.internal.codegen.binding.ComponentDescriptor;
 import dagger.internal.codegen.binding.InjectBindingRegistry;
 import dagger.internal.codegen.binding.MembersInjectionBinding;
 import dagger.internal.codegen.binding.ModuleDescriptor;
+import dagger.internal.codegen.binding.MonitoringModules;
 import dagger.internal.codegen.binding.ProductionBinding;
 import dagger.internal.codegen.binding.ProvisionBinding;
 import dagger.internal.codegen.bindinggraphvalidation.BindingGraphValidationModule;
@@ -169,6 +171,14 @@ final class DelegateComponentProcessor {
     @Binds
     @IntoSet
     ClearableCache moduleDescriptorFactory(ModuleDescriptor.Factory cache);
+
+    @Binds
+    @IntoSet
+    ClearableCache componentDescriptorFactory(ComponentDescriptor.Factory cache);
+
+    @Binds
+    @IntoSet
+    ClearableCache monitoringModules(MonitoringModules cache);
 
     @Binds
     @IntoSet

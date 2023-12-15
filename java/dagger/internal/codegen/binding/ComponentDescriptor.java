@@ -28,6 +28,7 @@ import static dagger.internal.codegen.base.ComponentAnnotation.subcomponentAnnot
 import static dagger.internal.codegen.base.ComponentCreatorAnnotation.creatorAnnotationsFor;
 import static dagger.internal.codegen.base.ModuleAnnotation.moduleAnnotation;
 import static dagger.internal.codegen.base.Scopes.productionScope;
+import static dagger.internal.codegen.base.Util.reentrantComputeIfAbsent;
 import static dagger.internal.codegen.binding.ConfigurationAnnotations.enclosedAnnotatedTypes;
 import static dagger.internal.codegen.binding.ConfigurationAnnotations.isSubcomponentCreator;
 import static dagger.internal.codegen.extension.DaggerStreams.toImmutableMap;
@@ -57,6 +58,7 @@ import com.squareup.javapoet.TypeName;
 import dagger.Component;
 import dagger.Module;
 import dagger.Subcomponent;
+import dagger.internal.codegen.base.ClearableCache;
 import dagger.internal.codegen.base.ComponentAnnotation;
 import dagger.internal.codegen.base.DaggerSuperficialValidation;
 import dagger.internal.codegen.base.ModuleAnnotation;
@@ -70,6 +72,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * A component declaration.
@@ -388,12 +391,14 @@ public abstract class ComponentDescriptor {
   }
 
   /** A factory for creating a {@link ComponentDescriptor}. */
-  public static final class Factory {
+  @Singleton
+  public static final class Factory implements ClearableCache {
     private final XProcessingEnv processingEnv;
     private final DependencyRequestFactory dependencyRequestFactory;
     private final ModuleDescriptor.Factory moduleDescriptorFactory;
     private final InjectionAnnotations injectionAnnotations;
     private final DaggerSuperficialValidation superficialValidation;
+    private final Map<XTypeElement, ComponentDescriptor> cache = new HashMap<>();
 
     @Inject
     Factory(
@@ -436,6 +441,12 @@ public abstract class ComponentDescriptor {
     }
 
     private ComponentDescriptor create(
+        XTypeElement typeElement, ComponentAnnotation componentAnnotation) {
+      return reentrantComputeIfAbsent(
+          cache, typeElement, unused -> createUncached(typeElement, componentAnnotation));
+    }
+
+    private ComponentDescriptor createUncached(
         XTypeElement typeElement, ComponentAnnotation componentAnnotation) {
       ImmutableSet<ComponentRequirement> componentDependencies =
           componentAnnotation.dependencyTypes().stream()
@@ -571,6 +582,11 @@ public abstract class ComponentDescriptor {
       }
 
       return descriptor.build();
+    }
+
+    @Override
+    public void clearCache() {
+      cache.clear();
     }
   }
 }
