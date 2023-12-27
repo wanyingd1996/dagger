@@ -44,7 +44,6 @@ import com.google.common.collect.Multimaps;
 import dagger.Reusable;
 import dagger.internal.codegen.base.ClearableCache;
 import dagger.internal.codegen.base.ContributionType;
-import dagger.internal.codegen.base.DaggerSuperficialValidation;
 import dagger.internal.codegen.base.Keys;
 import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.base.OptionalType;
@@ -260,38 +259,22 @@ public final class BindingGraphFactory implements ClearableCache {
     return shouldIncludeImplicitProductionModules(componentDescriptor, parentResolver)
         ? new ImmutableSet.Builder<ModuleDescriptor>()
             .addAll(componentDescriptor.modules())
-            .add(descriptorForMonitoringModule(componentDescriptor.typeElement()))
-            .add(descriptorForProductionExecutorModule())
+            .add(
+                moduleDescriptorFactory.create(
+                    processingEnv.requireTypeElement(
+                        generatedMonitoringModuleName(componentDescriptor.typeElement()))))
+            .add(
+                moduleDescriptorFactory.create(
+                    processingEnv.requireTypeElement(TypeNames.PRODUCTION_EXECTUTOR_MODULE)))
             .build()
         : componentDescriptor.modules();
   }
 
   private boolean shouldIncludeImplicitProductionModules(
-      ComponentDescriptor component, Optional<Resolver> parentResolver) {
-    return component.isProduction()
-        && ((!component.isSubcomponent() && component.isRealComponent())
-            || (parentResolver.isPresent()
-                && !parentResolver.get().componentDescriptor.isProduction()));
-  }
-
-  /**
-   * Returns a descriptor for a generated module that handles monitoring for production components.
-   * This module is generated in the {@link
-   * dagger.internal.codegen.validation.MonitoringModuleProcessingStep}.
-   *
-   * @throws TypeNotPresentException if the module has not been generated yet. This will cause the
-   *     processor to retry in a later processing round.
-   */
-  private ModuleDescriptor descriptorForMonitoringModule(XTypeElement componentDefinitionType) {
-    return moduleDescriptorFactory.create(
-        DaggerSuperficialValidation.requireTypeElement(
-            processingEnv, generatedMonitoringModuleName(componentDefinitionType)));
-  }
-
-  /** Returns a descriptor {@code ProductionExecutorModule}. */
-  private ModuleDescriptor descriptorForProductionExecutorModule() {
-    return moduleDescriptorFactory.create(
-        processingEnv.findTypeElement(TypeNames.PRODUCTION_EXECTUTOR_MODULE));
+      ComponentDescriptor componentDescriptor, Optional<Resolver> parentResolver) {
+    return componentDescriptor.isProduction()
+        && componentDescriptor.isRealComponent()
+        && (parentResolver.isEmpty() || !parentResolver.get().componentDescriptor.isProduction());
   }
 
   /** Indexes {@code bindingDeclarations} by {@link BindingDeclaration#key()}. */
