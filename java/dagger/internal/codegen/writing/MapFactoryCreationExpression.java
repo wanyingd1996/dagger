@@ -22,8 +22,9 @@ import static dagger.internal.codegen.binding.SourceFiles.mapFactoryClassName;
 import static dagger.internal.codegen.extension.DaggerCollectors.toOptional;
 
 import androidx.room.compiler.processing.XProcessingEnv;
-import androidx.room.compiler.processing.XType;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.TypeName;
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
@@ -58,18 +59,24 @@ final class MapFactoryCreationExpression extends MultibindingFactoryCreationExpr
 
   @Override
   public CodeBlock creationExpression() {
-    CodeBlock.Builder builder = CodeBlock.builder().add("$T.", mapFactoryClassName(binding));
+    ClassName mapFactoryClassName = mapFactoryClassName(binding);
+    CodeBlock.Builder builder = CodeBlock.builder().add("$T.", mapFactoryClassName);
+    TypeName valueTypeName = TypeName.OBJECT;
     if (!useRawType()) {
       MapType mapType = MapType.from(binding.key());
       // TODO(ronshapiro): either inline this into mapFactoryClassName, or add a
       // mapType.unwrappedValueType() method that doesn't require a framework type
-      XType valueType =
+      valueTypeName =
           Stream.of(TypeNames.PROVIDER, TypeNames.PRODUCER, TypeNames.PRODUCED)
               .filter(mapType::valuesAreTypeOf)
               .map(mapType::unwrappedValueType)
               .collect(toOptional())
-              .orElseGet(mapType::valueType);
-      builder.add("<$T, $T>", mapType.keyType().getTypeName(), valueType.getTypeName());
+              .orElseGet(mapType::valueType)
+              .getTypeName();
+      builder.add(
+          "<$T, $T>",
+          mapType.keyType().getTypeName(),
+          valueTypeName);
     }
 
     builder.add("builder($L)", binding.dependencies().size());
@@ -78,12 +85,12 @@ final class MapFactoryCreationExpression extends MultibindingFactoryCreationExpr
       ContributionBinding contributionBinding = graph.contributionBinding(dependency.key());
       builder.add(
           ".put($L, $L)",
-          getMapKeyExpression(contributionBinding, componentImplementation.name(), processingEnv),
+          getMapKeyExpression(
+          contributionBinding, componentImplementation.name(), processingEnv),
           multibindingDependencyExpression(dependency));
     }
-    builder.add(".build()");
 
-    return builder.build();
+    return builder.add(".build()").build();
   }
 
   @AssistedFactory

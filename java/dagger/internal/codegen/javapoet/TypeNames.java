@@ -53,6 +53,7 @@ public final class TypeNames {
   public static final ClassName SUBCOMPONENT_FACTORY = SUBCOMPONENT.nestedClass("Factory");
 
   // Dagger Internal classnames
+
   public static final ClassName DELEGATE_FACTORY =
       ClassName.get("dagger.internal", "DelegateFactory");
   public static final ClassName DOUBLE_CHECK = ClassName.get("dagger.internal", "DoubleCheck");
@@ -62,6 +63,7 @@ public final class TypeNames {
       ClassName.get("dagger.internal", "InjectedFieldSignature");
   public static final ClassName INSTANCE_FACTORY =
       ClassName.get("dagger.internal", "InstanceFactory");
+  public static final ClassName MAP_BUILDER = ClassName.get("dagger.internal", "MapBuilder");
   public static final ClassName MAP_FACTORY = ClassName.get("dagger.internal", "MapFactory");
   public static final ClassName MAP_PROVIDER_FACTORY =
       ClassName.get("dagger.internal", "MapProviderFactory");
@@ -142,6 +144,8 @@ public final class TypeNames {
   public static final ClassName ERROR = ClassName.get("java.lang", "Error");
   public static final ClassName EXCEPTION = ClassName.get("java.lang", "Exception");
   public static final ClassName RUNTIME_EXCEPTION = ClassName.get("java.lang", "RuntimeException");
+  public static final ClassName STRING = ClassName.get("java.lang", "String");
+
   public static final ClassName MAP = ClassName.get("java.util", "Map");
   public static final ClassName KOTLIN_METADATA = ClassName.get("kotlin", "Metadata");
   public static final ClassName IMMUTABLE_MAP =

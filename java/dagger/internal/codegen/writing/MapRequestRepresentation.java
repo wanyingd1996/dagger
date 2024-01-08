@@ -73,6 +73,12 @@ final class MapRequestRepresentation extends RequestRepresentation {
 
   @Override
   Expression getDependencyExpression(ClassName requestingClass) {
+    MapType mapType = MapType.from(binding.key());
+    Expression dependencyExpression = getUnderlyingMapExpression(requestingClass);
+    return dependencyExpression;
+  }
+
+  private Expression getUnderlyingMapExpression(ClassName requestingClass) {
     // TODO(ronshapiro): We should also make an ImmutableMap version of MapFactory
     boolean isImmutableMapAvailable = isImmutableMapAvailable();
     // TODO(ronshapiro, gak): Use Maps.immutableEnumMap() if it's available?
@@ -84,9 +90,7 @@ final class MapRequestRepresentation extends RequestRepresentation {
               .add(maybeTypeParameters(requestingClass))
               .add(
                   "of($L)",
-                  dependencies
-                      .keySet()
-                      .stream()
+                  dependencies.keySet().stream()
                       .map(dependency -> keyAndValueExpression(dependency, requestingClass))
                       .collect(toParametersCodeBlock()))
               .build());
@@ -101,10 +105,10 @@ final class MapRequestRepresentation extends RequestRepresentation {
                 "singletonMap($L)",
                 keyAndValueExpression(getOnlyElement(dependencies.keySet()), requestingClass)));
       default:
-        CodeBlock.Builder instantiation = CodeBlock.builder();
-        instantiation
-            .add("$T.", isImmutableMapAvailable ? ImmutableMap.class : MapBuilder.class)
-            .add(maybeTypeParameters(requestingClass));
+        CodeBlock.Builder instantiation =
+            CodeBlock.builder()
+                .add("$T.", isImmutableMapAvailable ? ImmutableMap.class : MapBuilder.class)
+                .add(maybeTypeParameters(requestingClass));
         if (isImmutableMapBuilderWithExpectedSizeAvailable()) {
           instantiation.add("builderWithExpectedSize($L)", dependencies.size());
         } else if (isImmutableMapAvailable) {
@@ -132,7 +136,8 @@ final class MapRequestRepresentation extends RequestRepresentation {
   private CodeBlock keyAndValueExpression(DependencyRequest dependency, ClassName requestingClass) {
     return CodeBlock.of(
         "$L, $L",
-        getMapKeyExpression(dependencies.get(dependency), requestingClass, processingEnv),
+        getMapKeyExpression(
+        dependencies.get(dependency), requestingClass, processingEnv),
         componentRequestRepresentations
             .getDependencyExpression(bindingRequest(dependency), requestingClass)
             .codeBlock());
@@ -154,7 +159,9 @@ final class MapRequestRepresentation extends RequestRepresentation {
     MapType mapType = MapType.from(binding.key());
     return isTypeAccessibleFrom(bindingKeyType, requestingClass.packageName())
         ? CodeBlock.of(
-            "<$T, $T>", mapType.keyType().getTypeName(), mapType.valueType().getTypeName())
+            "<$T, $T>",
+            mapType.keyType().getTypeName(),
+            mapType.valueType().getTypeName())
         : CodeBlock.of("");
   }
 
