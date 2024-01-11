@@ -96,7 +96,7 @@ pom_file(
 javadoc_library(
     name = "android-javadoc",
     srcs = [":android-srcs"],
-    android_api_level = 30,
+    android_api_level = 31,
     exclude_packages = ["dagger.android.internal"],
     root_packages = ["dagger.android"],
     deps = [":android"],
