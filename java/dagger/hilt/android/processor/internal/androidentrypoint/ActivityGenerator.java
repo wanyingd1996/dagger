@@ -45,6 +45,7 @@ import dagger.hilt.processor.internal.Processors;
 import dagger.internal.codegen.xprocessing.XElements;
 import java.io.IOException;
 import javax.lang.model.element.Modifier;
+import javax.tools.Diagnostic;
 
 /** Generates an Hilt Activity class for the @AndroidEntryPoint annotated class. */
 public final class ActivityGenerator {
@@ -185,6 +186,14 @@ public final class ActivityGenerator {
   private MethodSpec onCreateComponentActivity() {
     XMethodElement nearestOverrideMethod =
         requireNearestOverrideMethod(ActivityMethod.ON_CREATE, metadata);
+    if (nearestOverrideMethod.isFinal()) {
+      env.getMessager()
+          .printMessage(
+              Diagnostic.Kind.ERROR,
+              "Do not mark onCreate as final in base Activity class, as Hilt needs to override it"
+                  + " to inject SavedStateHandle.",
+              nearestOverrideMethod);
+    }
     ParameterSpec.Builder parameterBuilder =
         ParameterSpec.builder(AndroidClassNames.BUNDLE, "savedInstanceState");
     MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("onCreate");
@@ -246,6 +255,14 @@ public final class ActivityGenerator {
   private MethodSpec onDestroyComponentActivity() {
     XMethodElement nearestOverrideMethod =
         requireNearestOverrideMethod(ActivityMethod.ON_DESTROY, metadata);
+    if (nearestOverrideMethod.isFinal()) {
+      env.getMessager()
+          .printMessage(
+              Diagnostic.Kind.ERROR,
+              "Do not mark onDestroy as final in base Activity class, as Hilt needs to override it"
+                  + " to clean up SavedStateHandle.",
+              nearestOverrideMethod);
+    }
     return MethodSpec.methodBuilder("onDestroy")
         .addAnnotation(Override.class)
         .addModifiers(XElements.getModifiers(nearestOverrideMethod))
