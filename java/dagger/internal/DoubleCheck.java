@@ -115,7 +115,6 @@ public final class DoubleCheck<T> implements Provider<T>, Lazy<T> {
    * Legacy javax version of the method to support libraries compiled with an older version of
    * Dagger. Do not use directly.
    */
-  @Deprecated
   public static <P extends javax.inject.Provider<T>, T> Lazy<T> lazy(P provider) {
     return lazy(asDaggerProvider(provider));
   }
