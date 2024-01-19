@@ -16,7 +16,8 @@ import pkg1.AComponent;
     "unchecked",
     "rawtypes",
     "KotlinInternal",
-    "KotlinInternalInJava"
+    "KotlinInternalInJava",
+    "cast"
 })
 final class DaggerBComponent {
   private DaggerBComponent() {

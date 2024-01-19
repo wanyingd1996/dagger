@@ -19,7 +19,8 @@ import other.Maybe_MaybeModule_ProvideMaybeFactory;
     "unchecked",
     "rawtypes",
     "KotlinInternal",
-    "KotlinInternalInJava"
+    "KotlinInternalInJava",
+    "cast"
 })
 final class DaggerTestComponent {
   private DaggerTestComponent() {

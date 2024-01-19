@@ -13,7 +13,8 @@ import javax.annotation.processing.Generated;
     "unchecked",
     "rawtypes",
     "KotlinInternal",
-    "KotlinInternalInJava"
+    "KotlinInternalInJava",
+    "cast"
 })
 final class DaggerMyComponent {
   private DaggerMyComponent() {
@@ -94,3 +95,4 @@ final class DaggerMyComponent {
     }
   }
 }
+

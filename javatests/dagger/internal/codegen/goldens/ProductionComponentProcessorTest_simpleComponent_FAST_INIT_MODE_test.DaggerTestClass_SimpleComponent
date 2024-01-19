@@ -23,7 +23,8 @@ import javax.annotation.processing.Generated;
     "unchecked",
     "rawtypes",
     "KotlinInternal",
-    "KotlinInternalInJava"
+    "KotlinInternalInJava",
+    "cast"
 })
 final class DaggerTestClass_SimpleComponent {
   private DaggerTestClass_SimpleComponent() {
