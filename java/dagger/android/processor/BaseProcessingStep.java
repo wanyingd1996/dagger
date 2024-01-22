@@ -36,7 +36,7 @@ import java.util.Set;
  * A {@link XProcessingStep} that processes one element at a time and defers any for which {@link
  * TypeNotPresentException} is thrown.
  */
-abstract class BaseProcessingStep implements XProcessingStep {
+public abstract class BaseProcessingStep implements XProcessingStep {
   @Override
   public final ImmutableSet<String> annotations() {
     return annotationClassNames().stream().map(ClassName::canonicalName).collect(toImmutableSet());

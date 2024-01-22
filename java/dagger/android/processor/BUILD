@@ -32,13 +32,28 @@ filegroup(
 )
 
 java_library(
+    name = "base_processing_step",
+    srcs = ["BaseProcessingStep.java"],
+    deps = [
+        "//java/dagger/internal/codegen/extension",
+        "//java/dagger/internal/codegen/xprocessing",
+        "//third_party/java/guava/base",
+        "//third_party/java/guava/collect",
+        "//third_party/java/javapoet",
+    ],
+)
+
+java_library(
     name = "processor",
-    srcs = [":srcs"],
+    srcs = glob(
+        ["*.java"],
+        exclude = ["BaseProcessingStep.java"],
+    ),
     javacopts = DOCLINT_HTML_AND_SYNTAX + DOCLINT_REFERENCES,
     tags = ["maven_coordinates=com.google.dagger:dagger-android-processor:" + POM_VERSION],
     deps = [
+        ":base_processing_step",
         "//java/dagger:core",
-        "//java/dagger/internal/codegen/extension",
         "//java/dagger/internal/codegen/xprocessing",
         "//java/dagger/spi",
         "//third_party/java/auto:service",
@@ -58,6 +73,7 @@ gen_maven_artifact(
     artifact_target = ":processor",
     artifact_target_libs = [
         "//java/dagger/internal/codegen/xprocessing",
+        "//java/dagger/android/processor:base_processing_step",
     ],
     artifact_target_maven_deps = [
         "com.google.dagger:dagger",
