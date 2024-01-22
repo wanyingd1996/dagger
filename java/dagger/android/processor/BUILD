@@ -15,7 +15,6 @@
 # Description:
 #   Public Dagger API for Android
 
-load("@google_bazel_common//tools/javadoc:javadoc.bzl", "javadoc_library")
 load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
 load(
     "//:build_defs.bzl",
@@ -23,7 +22,7 @@ load(
     "DOCLINT_REFERENCES",
     "POM_VERSION",
 )
-load("//tools:maven.bzl", "pom_file")
+load("//tools:maven.bzl", "gen_maven_artifact")
 
 package(default_visibility = ["//:src"])
 
@@ -52,23 +51,35 @@ java_library(
     ],
 )
 
-pom_file(
-    name = "pom",
-    artifact_id = "dagger-android-processor",
+gen_maven_artifact(
+    name = "artifact",
+    artifact_coordinates = "com.google.dagger:dagger-android-processor:" + POM_VERSION,
     artifact_name = "Dagger Android Processor",
-    targets = [":processor"],
+    artifact_target = ":processor",
+    artifact_target_libs = [
+        "//java/dagger/internal/codegen/xprocessing",
+    ],
+    artifact_target_maven_deps = [
+        "com.google.dagger:dagger",
+        "com.google.devtools.ksp:symbol-processing-api",
+        "com.google.guava:guava",
+        "com.squareup:javapoet",
+        "com.google.code.findbugs:jsr305",
+        "com.google.dagger:dagger-spi",
+        "com.google.guava:failureaccess",
+        "com.squareup:kotlinpoet",
+        "net.ltgt.gradle.incap:incap",
+        "org.jetbrains.kotlin:kotlin-stdlib",
+    ],
+    javadoc_root_packages = [
+        "dagger.android.processor",
+    ],
+    javadoc_srcs = [":srcs"],
 )
 
 java_plugin(
     name = "plugin",
     generates_api = 1,
     processor_class = "dagger.android.processor.AndroidProcessor",
-    deps = [":processor"],
-)
-
-javadoc_library(
-    name = "processor-javadoc",
-    srcs = [":srcs"],
-    root_packages = ["dagger.android.processor"],
     deps = [":processor"],
 )

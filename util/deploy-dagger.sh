@@ -77,10 +77,10 @@ _deploy \
 
 _deploy \
   "" \
-  java/dagger/android/android.aar \
+  java/dagger/android/artifact.aar \
   java/dagger/android/pom.xml \
-  java/dagger/android/libandroid-src.jar \
-  java/dagger/android/android-javadoc.jar \
+  java/dagger/android/artifact-src.jar \
+  java/dagger/android/artifact-javadoc.jar \
   ""
 
 _deploy \
@@ -93,10 +93,10 @@ _deploy \
 
 _deploy \
   "" \
-  java/dagger/android/support/support.aar \
+  java/dagger/android/support/artifact.aar \
   java/dagger/android/support/pom.xml \
-  java/dagger/android/support/libsupport-src.jar \
-  java/dagger/android/support/support-javadoc.jar \
+  java/dagger/android/support/artifact-src.jar \
+  java/dagger/android/support/artifact-javadoc.jar \
   ""
 
 _deploy \
@@ -109,10 +109,10 @@ _deploy \
 
 _deploy \
   "com.google.auto.common,dagger.spi.internal.shaded.auto.common;androidx.room.compiler,dagger.spi.internal.shaded.androidx.room.compiler;kotlinx.metadata,dagger.spi.internal.shaded.kotlinx.metadata;androidx.room,dagger.spi.internal.shaded.androidx.room" \
-  java/dagger/android/processor/libprocessor.jar \
+  java/dagger/android/processor/artifact.jar \
   java/dagger/android/processor/pom.xml \
-  java/dagger/android/processor/libprocessor-src.jar \
-  java/dagger/android/processor/processor-javadoc.jar \
+  java/dagger/android/processor/artifact-src.jar \
+  java/dagger/android/processor/artifact-javadoc.jar \
   ""
 
 _deploy \
