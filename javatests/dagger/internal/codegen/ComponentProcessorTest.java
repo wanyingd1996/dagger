@@ -17,13 +17,13 @@
 package dagger.internal.codegen;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import androidx.room.compiler.processing.util.CompilationResultSubject;
 import androidx.room.compiler.processing.util.Source;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.truth.Truth8;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
@@ -1432,13 +1432,10 @@ public class ComponentProcessorTest {
   }
 
   private void assertDoesNotHaveNoteContaining(CompilationResultSubject subject, String content) {
-    assertThat(
-        subject
-            .getCompilationResult()
-            .getDiagnostics()
-            .get(Diagnostic.Kind.NOTE)
-            .stream()
-            .filter(diagnostic -> diagnostic.getMsg().contains(content))).isEmpty();
+    Truth8.assertThat(
+            subject.getCompilationResult().getDiagnostics().get(Diagnostic.Kind.NOTE).stream()
+                .filter(diagnostic -> diagnostic.getMsg().contains(content)))
+        .isEmpty();
   }
 
   @Test

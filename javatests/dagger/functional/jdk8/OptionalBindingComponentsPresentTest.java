@@ -17,11 +17,11 @@
 package dagger.functional.jdk8;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static dagger.functional.jdk8.OptionalBindingComponents.Value.QUALIFIED_VALUE;
 import static dagger.functional.jdk8.OptionalBindingComponents.Value.VALUE;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.truth.Truth8;
 import dagger.functional.jdk8.OptionalBindingComponents.OptionalBindingComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +64,7 @@ public final class OptionalBindingComponentsPresentTest {
 
   @Test
   public void qualifiedOptional() {
-    assertThat(component.qualifiedValues().optionalInstance()).hasValue(QUALIFIED_VALUE);
+    Truth8.assertThat(component.qualifiedValues().optionalInstance()).hasValue(QUALIFIED_VALUE);
   }
 
   @Test

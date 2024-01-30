@@ -17,9 +17,9 @@
 package dagger.functional.assisted;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import com.google.common.truth.Truth8;
 import dagger.Binds;
 import dagger.BindsInstance;
 import dagger.BindsOptionalOf;
@@ -243,10 +243,10 @@ public final class AssistedFactoryAsQualifiedBindingTest {
     assertThat(foo.barFactoryAsBinds).isEqualTo(barFactory);
 
     // Test injection of a qualified Bar/BarFactory with custom @BindsOptionalOf implementation
-    assertThat(foo.optionalBar).isPresent();
-    assertThat(foo.optionalBar).hasValue(bar);
-    assertThat(foo.optionalBarFactory).isPresent();
-    assertThat(foo.optionalBarFactory).hasValue(barFactory);
+    Truth8.assertThat(foo.optionalBar).isPresent();
+    Truth8.assertThat(foo.optionalBar).hasValue(bar);
+    Truth8.assertThat(foo.optionalBarFactory).isPresent();
+    Truth8.assertThat(foo.optionalBarFactory).hasValue(barFactory);
 
     // Test injection of a qualified Bar/BarFactory as multibinding
     assertThat(foo.barSet).containsExactly(bar);
