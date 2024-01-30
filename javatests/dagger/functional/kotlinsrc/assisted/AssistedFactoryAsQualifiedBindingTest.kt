@@ -17,7 +17,7 @@
 package dagger.functional.kotlinsrc.assisted
 
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth8.assertThat
+import com.google.common.truth.Truth8
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.BindsOptionalOf
@@ -56,7 +56,7 @@ internal class AssistedFactoryAsQualifiedBindingTest {
     interface Factory {
       fun create(
         @BindsInstance @AsComponentDependency bar: Bar,
-        @BindsInstance @AsComponentDependency barFactory: BarFactory
+        @BindsInstance @AsComponentDependency barFactory: BarFactory,
       ): TestComponent
     }
   }
@@ -132,7 +132,7 @@ internal class AssistedFactoryAsQualifiedBindingTest {
     @AsMultibinding val barSet: Set<Bar>,
     @AsMultibinding val barFactorySet: Set<@JvmSuppressWildcards BarFactory>,
     val unqualifiedBarSet: Set<Bar>,
-    val unqualifiedBarFactorySet: Set<@JvmSuppressWildcards BarFactory>
+    val unqualifiedBarFactorySet: Set<@JvmSuppressWildcards BarFactory>,
   )
 
   class Bar @AssistedInject constructor()
@@ -169,10 +169,10 @@ internal class AssistedFactoryAsQualifiedBindingTest {
     assertThat(foo.barFactoryAsBinds).isEqualTo(barFactory)
 
     // Test injection of a qualified Bar/BarFactory with custom @BindsOptionalOf implementation
-    assertThat(foo.optionalBar).isPresent()
-    assertThat(foo.optionalBar).hasValue(bar)
-    assertThat(foo.optionalBarFactory).isPresent()
-    assertThat(foo.optionalBarFactory).hasValue(barFactory)
+    Truth8.assertThat(foo.optionalBar).isPresent()
+    Truth8.assertThat(foo.optionalBar).hasValue(bar)
+    Truth8.assertThat(foo.optionalBarFactory).isPresent()
+    Truth8.assertThat(foo.optionalBarFactory).hasValue(barFactory)
 
     // Test injection of a qualified Bar/BarFactory as multibinding
     assertThat(foo.barSet).containsExactly(bar)
