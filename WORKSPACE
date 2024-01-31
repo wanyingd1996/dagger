@@ -181,7 +181,7 @@ AUTO_COMMON_VERSION = "1.2.1"
 # NOTE(bcorso): Even though we set the version here, our Guava version in
 #  processor code will use whatever version is built into JavaBuilder, which is
 #  tied to the version of Bazel we're using.
-GUAVA_VERSION = "27.1"
+GUAVA_VERSION = "33.0.0"
 
 GRPC_VERSION = "1.2.0"
 
@@ -243,7 +243,7 @@ maven_install(
         "com.google.guava:guava-beta-checker:1.0",
         "com.google.protobuf:protobuf-java:3.7.0",
         "com.google.testing.compile:compile-testing:0.18",
-        "com.google.truth:truth:1.1",
+        "com.google.truth:truth:1.3.0",
         "com.squareup:javapoet:1.13.0",
         "com.squareup:kotlinpoet:1.11.0",
         "io.github.java-diff-utils:java-diff-utils:4.11",
