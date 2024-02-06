@@ -18,7 +18,6 @@ package dagger.functional.producers.aot;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.truth.Truth8;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import dagger.BindsOptionalOf;
@@ -113,6 +112,6 @@ public class ProducesMethodShadowsInjectConstructorTest {
     Leaf leaf = DaggerProducesMethodShadowsInjectConstructorTest_Root.create().leaf();
     leaf.dependsOnShadowingProducer().get();
     assertThat(leaf.shadowedProvisionMultibinding().get()).hasSize(2);
-    Truth8.assertThat(leaf.emptyProvisionBindingToPresentProductionBinding().get()).isPresent();
+    assertThat(leaf.emptyProvisionBindingToPresentProductionBinding().get()).isPresent();
   }
 }
