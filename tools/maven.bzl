@@ -15,10 +15,10 @@
 """Macros to simplify generating maven files.
 """
 
+load("@google_bazel_common//tools/jarjar:jarjar.bzl", "jarjar_library")
+load("@google_bazel_common//tools/javadoc:javadoc.bzl", "javadoc_library")
 load("@google_bazel_common//tools/maven:pom_file.bzl", default_pom_file = "pom_file")
 load(":maven_info.bzl", "MavenInfo", "collect_maven_info")
-load("@google_bazel_common//tools/javadoc:javadoc.bzl", "javadoc_library")
-load("@google_bazel_common//tools/jarjar:jarjar.bzl", "jarjar_library")
 
 SHADED_MAVEN_DEPS = [
     "com.google.auto:auto-common",
@@ -66,7 +66,7 @@ def gen_maven_artifact(
         shaded_deps = None,
         manifest = None,
         lint_deps = None,
-        proguard_specs = None):
+        proguard_and_r8_specs = None):
     _gen_maven_artifact(
         name,
         artifact_name,
@@ -85,7 +85,7 @@ def gen_maven_artifact(
         shaded_deps,
         manifest,
         lint_deps,
-        proguard_specs
+        proguard_and_r8_specs
     )
 
 def _gen_maven_artifact(
@@ -106,7 +106,7 @@ def _gen_maven_artifact(
         shaded_deps,
         manifest,
         lint_deps,
-        proguard_specs):
+        proguard_and_r8_specs):
     """Generates the files required for a maven artifact.
 
     This macro generates the following targets:
@@ -140,7 +140,8 @@ def _gen_maven_artifact(
       shaded_deps: The shaded deps for the jarjar.
       manifest: The AndroidManifest.xml to bundle in when packaing an 'aar'.
       lint_deps: The lint targets to be bundled in when packaging an 'aar'.
-      proguard_specs: The proguard spec files to be bundled in when packaging an 'aar'
+      proguard_and_r8_specs: The proguard spec files to be bundled in when
+      packaging an 'aar', which will be applied in both r8 and proguard.
     """
 
     _validate_maven_deps(
@@ -189,11 +190,11 @@ def _gen_maven_artifact(
         else:
             lint_jar_name = None
 
-        if proguard_specs:
+        if proguard_and_r8_specs:
             # Concatenate all proguard rules since an aar only contains a single proguard.txt
             native.genrule(
                 name = name + "-proguard",
-                srcs = proguard_specs,
+                srcs = proguard_and_r8_specs,
                 outs = [name + "-proguard.txt"],
                 cmd = "cat $(SRCS) > $@",
             )
