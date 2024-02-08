@@ -31,6 +31,7 @@ import dagger.assisted.AssistedInject;
 import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.binding.BindingGraph;
 import dagger.internal.codegen.binding.ContributionBinding;
+import dagger.internal.codegen.binding.MapKeys;
 import dagger.internal.codegen.javapoet.TypeNames;
 import dagger.internal.codegen.model.DependencyRequest;
 import java.util.stream.Stream;
@@ -42,6 +43,8 @@ final class MapFactoryCreationExpression extends MultibindingFactoryCreationExpr
   private final ComponentImplementation componentImplementation;
   private final BindingGraph graph;
   private final ContributionBinding binding;
+  private final boolean useLazyClassKey;
+  private final LazyClassKeyProviders lazyClassKeyProviders;
 
   @AssistedInject
   MapFactoryCreationExpression(
@@ -55,6 +58,9 @@ final class MapFactoryCreationExpression extends MultibindingFactoryCreationExpr
     this.binding = checkNotNull(binding);
     this.componentImplementation = componentImplementation;
     this.graph = graph;
+    this.useLazyClassKey = MapKeys.useLazyClassKey(binding, graph);
+    this.lazyClassKeyProviders =
+        componentImplementation.shardImplementation(binding).getLazyClassKeyProviders();
   }
 
   @Override
@@ -75,7 +81,7 @@ final class MapFactoryCreationExpression extends MultibindingFactoryCreationExpr
               .getTypeName();
       builder.add(
           "<$T, $T>",
-          mapType.keyType().getTypeName(),
+          useLazyClassKey ? TypeNames.STRING : mapType.keyType().getTypeName(),
           valueTypeName);
     }
 
@@ -85,12 +91,20 @@ final class MapFactoryCreationExpression extends MultibindingFactoryCreationExpr
       ContributionBinding contributionBinding = graph.contributionBinding(dependency.key());
       builder.add(
           ".put($L, $L)",
-          getMapKeyExpression(
-          contributionBinding, componentImplementation.name(), processingEnv),
+          useLazyClassKey
+              ? lazyClassKeyProviders.getMapKeyExpression(dependency.key())
+              : getMapKeyExpression(
+                  contributionBinding, componentImplementation.name(), processingEnv),
           multibindingDependencyExpression(dependency));
     }
 
-    return builder.add(".build()").build();
+    return useLazyClassKey
+        ? CodeBlock.of(
+            "$T.<$T>of($L)",
+            TypeNames.LAZY_CLASS_KEY_MAP_FACTORY,
+            valueTypeName,
+            builder.add(".build()").build())
+        : builder.add(".build()").build();
   }
 
   @AssistedFactory

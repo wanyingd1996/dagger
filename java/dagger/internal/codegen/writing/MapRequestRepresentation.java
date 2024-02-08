@@ -38,6 +38,7 @@ import dagger.internal.MapBuilder;
 import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.binding.BindingGraph;
 import dagger.internal.codegen.binding.ContributionBinding;
+import dagger.internal.codegen.binding.MapKeys;
 import dagger.internal.codegen.binding.ProvisionBinding;
 import dagger.internal.codegen.javapoet.Expression;
 import dagger.internal.codegen.javapoet.TypeNames;
@@ -54,6 +55,8 @@ final class MapRequestRepresentation extends RequestRepresentation {
   private final ProvisionBinding binding;
   private final ImmutableMap<DependencyRequest, ContributionBinding> dependencies;
   private final ComponentRequestRepresentations componentRequestRepresentations;
+  private final boolean useLazyClassKey;
+  private final LazyClassKeyProviders lazyClassKeyProviders;
 
   @AssistedInject
   MapRequestRepresentation(
@@ -69,12 +72,25 @@ final class MapRequestRepresentation extends RequestRepresentation {
     this.componentRequestRepresentations = componentRequestRepresentations;
     this.dependencies =
         Maps.toMap(binding.dependencies(), dep -> graph.contributionBinding(dep.key()));
+    this.useLazyClassKey = MapKeys.useLazyClassKey(binding, graph);
+    this.lazyClassKeyProviders =
+        componentImplementation.shardImplementation(binding).getLazyClassKeyProviders();
   }
 
   @Override
   Expression getDependencyExpression(ClassName requestingClass) {
     MapType mapType = MapType.from(binding.key());
     Expression dependencyExpression = getUnderlyingMapExpression(requestingClass);
+    // LazyClassKey is backed with a string map, therefore needs to be wrapped.
+    if (useLazyClassKey) {
+      return Expression.create(
+          dependencyExpression.type(),
+          CodeBlock.of(
+              "$T.<$T>of($L)",
+              TypeNames.LAZY_CLASS_KEY_MAP,
+              mapType.valueType().getTypeName(),
+              dependencyExpression.codeBlock()));
+    }
     return dependencyExpression;
   }
 
@@ -136,8 +152,9 @@ final class MapRequestRepresentation extends RequestRepresentation {
   private CodeBlock keyAndValueExpression(DependencyRequest dependency, ClassName requestingClass) {
     return CodeBlock.of(
         "$L, $L",
-        getMapKeyExpression(
-        dependencies.get(dependency), requestingClass, processingEnv),
+        useLazyClassKey
+            ? lazyClassKeyProviders.getMapKeyExpression(dependency.key())
+            : getMapKeyExpression(dependencies.get(dependency), requestingClass, processingEnv),
         componentRequestRepresentations
             .getDependencyExpression(bindingRequest(dependency), requestingClass)
             .codeBlock());
@@ -160,7 +177,7 @@ final class MapRequestRepresentation extends RequestRepresentation {
     return isTypeAccessibleFrom(bindingKeyType, requestingClass.packageName())
         ? CodeBlock.of(
             "<$T, $T>",
-            mapType.keyType().getTypeName(),
+            useLazyClassKey ? TypeNames.STRING : mapType.keyType().getTypeName(),
             mapType.valueType().getTypeName())
         : CodeBlock.of("");
   }

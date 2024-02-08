@@ -53,6 +53,15 @@ public final class TypeNames {
   public static final ClassName SUBCOMPONENT_FACTORY = SUBCOMPONENT.nestedClass("Factory");
 
   // Dagger Internal classnames
+  public static final ClassName IDENTIFIER_NAME_STRING =
+      ClassName.get("dagger.internal", "IdentifierNameString");
+  public static final ClassName KEEP_FIELD_TYPE = ClassName.get("dagger.internal", "KeepFieldType");
+  public static final ClassName LAZY_CLASS_KEY =
+      ClassName.get("dagger.multibindings", "LazyClassKey");
+  public static final ClassName LAZY_CLASS_KEY_MAP =
+      ClassName.get("dagger.internal", "LazyClassKeyMap");
+  public static final ClassName LAZY_CLASS_KEY_MAP_FACTORY =
+      ClassName.get("dagger.internal", "LazyClassKeyMap", "Factory");
 
   public static final ClassName DELEGATE_FACTORY =
       ClassName.get("dagger.internal", "DelegateFactory");

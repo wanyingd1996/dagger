@@ -456,6 +456,7 @@ public final class ComponentImplementation {
     private final UniqueNameSet assistedParamNames = new UniqueNameSet();
     private final List<CodeBlock> initializations = new ArrayList<>();
     private final SwitchingProviders switchingProviders;
+    private final LazyClassKeyProviders lazyClassKeyProviders;
     private final Map<Key, CodeBlock> cancellations = new LinkedHashMap<>();
     private final Map<XVariableElement, String> uniqueAssistedName = new LinkedHashMap<>();
     private final List<CodeBlock> componentRequirementInitializations = new ArrayList<>();
@@ -472,6 +473,7 @@ public final class ComponentImplementation {
     private ShardImplementation(ClassName name) {
       this.name = name;
       this.switchingProviders = new SwitchingProviders(this, processingEnv);
+      this.lazyClassKeyProviders = new LazyClassKeyProviders(this);
       if (graph.componentDescriptor().isProduction()) {
         claimMethodName(CANCELLATION_LISTENER_METHOD_NAME);
       }
@@ -503,6 +505,10 @@ public final class ComponentImplementation {
     /** Returns the {@link SwitchingProviders} class for this shard. */
     public SwitchingProviders getSwitchingProviders() {
       return switchingProviders;
+    }
+
+    public LazyClassKeyProviders getLazyClassKeyProviders() {
+      return lazyClassKeyProviders;
     }
 
     /** Returns the {@link ComponentImplementation} that owns this shard. */

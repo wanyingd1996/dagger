@@ -47,6 +47,8 @@ gen_maven_artifact(
     ],
     javadoc_root_packages = ["dagger"],
     javadoc_srcs = [":javadoc-srcs"],
+    proguard_specs = [":proguard.pro"],
+    r8_specs = [":r8.pro"],
 )
 
 filegroup(
