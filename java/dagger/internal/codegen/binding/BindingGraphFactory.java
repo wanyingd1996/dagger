@@ -44,6 +44,7 @@ import com.google.common.collect.Multimaps;
 import dagger.Reusable;
 import dagger.internal.codegen.base.ClearableCache;
 import dagger.internal.codegen.base.ContributionType;
+import dagger.internal.codegen.base.DaggerSuperficialValidation;
 import dagger.internal.codegen.base.Keys;
 import dagger.internal.codegen.base.MapType;
 import dagger.internal.codegen.base.OptionalType;
@@ -261,7 +262,8 @@ public final class BindingGraphFactory implements ClearableCache {
             .addAll(componentDescriptor.modules())
             .add(
                 moduleDescriptorFactory.create(
-                    processingEnv.requireTypeElement(
+                    DaggerSuperficialValidation.requireTypeElement(
+                        processingEnv,
                         generatedMonitoringModuleName(componentDescriptor.typeElement()))))
             .add(
                 moduleDescriptorFactory.create(
