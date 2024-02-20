@@ -170,6 +170,8 @@ public final class ClassNames {
       get("dagger.hilt.android.internal.testing", "TestInstanceHolder");
   public static final ClassName HILT_ANDROID_TEST =
       get("dagger.hilt.android.testing", "HiltAndroidTest");
+  public static final ClassName SKIP_TEST_INJECTION =
+      get("dagger.hilt.android.testing", "SkipTestInjection");
   public static final ClassName CUSTOM_TEST_APPLICATION =
       get("dagger.hilt.android.testing", "CustomTestApplication");
   public static final ClassName ON_COMPONENT_READY_RUNNER =

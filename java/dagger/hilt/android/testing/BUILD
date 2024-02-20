@@ -168,6 +168,15 @@ android_library(
     ],
 )
 
+android_library(
+    name = "skip_test_injection",
+    testonly = 1,
+    srcs = ["SkipTestInjection.java"],
+    deps = [
+        ":package_info",
+    ],
+)
+
 java_library(
     name = "package_info",
     srcs = ["package-info.java"],
