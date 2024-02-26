@@ -72,6 +72,9 @@ public final class ClassNames {
   public static final ClassName DEFINE_COMPONENT_CLASSES =
       get("dagger.hilt.internal.definecomponent", "DefineComponentClasses");
 
+  public static final ClassName IDENTIFIER_NAME_STRING =
+      get("dagger.internal", "IdentifierNameString");
+
   public static final ClassName ASSISTED_INJECT = get("dagger.assisted", "AssistedInject");
   public static final ClassName ASSISTED_FACTORY = get("dagger.assisted", "AssistedFactory");
   public static final ClassName BINDS =
@@ -86,6 +89,7 @@ public final class ClassNames {
   public static final ClassName INTO_SET = get("dagger.multibindings", "IntoSet");
   public static final ClassName ELEMENTS_INTO_SET = get("dagger.multibindings", "ElementsIntoSet");
   public static final ClassName STRING_KEY = get("dagger.multibindings", "StringKey");
+  public static final ClassName LAZY_CLASS_KEY = get("dagger.multibindings", "LazyClassKey");
   public static final ClassName PROVIDES =
       get("dagger", "Provides");
   public static final ClassName COMPONENT = get("dagger", "Component");

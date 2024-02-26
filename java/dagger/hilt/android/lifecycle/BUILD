@@ -33,7 +33,6 @@ android_library(
     exported_plugins = [
         "//java/dagger/hilt/android/processor/internal/viewmodel:processor",
     ],
-    proguard_specs = ["proguard-rules.pro"],
     exports = [
         "//:dagger_with_compiler",
         "//java/dagger/hilt:install_in",

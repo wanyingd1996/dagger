@@ -26,8 +26,9 @@ import java.lang.annotation.Target;
 /**
  * Annotates the dagger generated class that requires applying -identifiernamestring rule.
  *
- * <p>When applied, all the strings that corresponds to a class name within the annotated class will
- * be obfuscated if its corresponding class is obfuscated. This only works with r8. This annotation
+ * <p>When applied, all the strings fields that corresponds to a class name within the annotated
+ * class will be obfuscated if its corresponding class is obfuscated. This only works with r8.
+ *
  */
 @Documented
 @Retention(CLASS)
