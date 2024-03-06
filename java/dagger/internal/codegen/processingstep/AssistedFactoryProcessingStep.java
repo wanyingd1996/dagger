@@ -57,7 +57,6 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import dagger.internal.codegen.base.SourceFileGenerationException;
 import dagger.internal.codegen.base.SourceFileGenerator;
 import dagger.internal.codegen.binding.AssistedInjectionAnnotations;
 import dagger.internal.codegen.binding.AssistedInjectionAnnotations.AssistedFactoryMetadata;
@@ -110,12 +109,8 @@ final class AssistedFactoryProcessingStep extends TypeCheckingProcessingStep<XTy
     ValidationReport report = new AssistedFactoryValidator().validate(factory);
     report.printMessagesTo(messager);
     if (report.isClean()) {
-      try {
-        ProvisionBinding binding = bindingFactory.assistedFactoryBinding(factory, Optional.empty());
-        new AssistedFactoryImplGenerator().generate(binding);
-      } catch (SourceFileGenerationException e) {
-        e.printMessageTo(messager);
-      }
+      ProvisionBinding binding = bindingFactory.assistedFactoryBinding(factory, Optional.empty());
+      new AssistedFactoryImplGenerator().generate(binding);
     }
   }
 

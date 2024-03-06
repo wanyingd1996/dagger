@@ -28,7 +28,6 @@ import androidx.room.compiler.processing.XElement;
 import androidx.room.compiler.processing.XFiler;
 import androidx.room.compiler.processing.XMessager;
 import androidx.room.compiler.processing.XProcessingEnv;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.AnnotationSpec;
@@ -61,29 +60,15 @@ public abstract class SourceFileGenerator<T> {
     this(delegate.filer, delegate.processingEnv);
   }
 
-  /**
-   * Generates a source file to be compiled for {@code T}. Writes any generation exception to {@code
-   * messager} and does not throw.
-   */
+  /** Generates a source file to be compiled for {@code T}. */
   public void generate(T input, XMessager messager) {
-    try {
-      generate(input);
-    } catch (SourceFileGenerationException e) {
-      e.printMessageTo(messager);
-    }
+    generate(input);
   }
 
   /** Generates a source file to be compiled for {@code T}. */
-  public void generate(T input) throws SourceFileGenerationException {
+  public void generate(T input) {
     for (TypeSpec.Builder type : topLevelTypes(input)) {
-      try {
-        filer.write(buildJavaFile(input, type), XFiler.Mode.Isolating);
-      } catch (RuntimeException e) {
-        // if the code above threw a SFGE, use that
-        Throwables.propagateIfPossible(e, SourceFileGenerationException.class);
-        // otherwise, throw a new one
-        throw new SourceFileGenerationException(Optional.empty(), e, originatingElement(input));
-      }
+      filer.write(buildJavaFile(input, type), XFiler.Mode.Isolating);
     }
   }
 
